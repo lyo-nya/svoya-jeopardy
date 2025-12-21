@@ -16,7 +16,7 @@ A Telegram Mini App for playing Jeopardy-style trivia at your New Year's Eve par
 ## 🎮 How It Works
 
 ### Before the Party
-1. Add the Mini App to your Telegram group chat
+1. Add the Mini App to your Telegram group chat (you become the host)
 2. Each of the 5 players submits 4 categories (5 questions each)
 3. Questions support text and optional images
 4. Question sets are hidden from other players

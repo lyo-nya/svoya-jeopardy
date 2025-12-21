@@ -267,12 +267,27 @@ Add the following secrets:
 3. Select "Web App Info"
 4. Enter your app URL: `https://your-domain.com`
 
-### 5.3 Test Mini App
+### 5.3 Register Webhook
+
+Set up the webhook so the bot receives updates when added to groups:
+
+```bash
+curl -X POST "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://your-domain.com/webhook"}'
+```
+
+Verify webhook is set:
+```bash
+curl "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getWebhookInfo"
+```
+
+### 5.4 Test Mini App
 
 1. Open Telegram
-2. Go to your bot
-3. Click the menu button or send `/start`
-4. Mini App should open
+2. Add the bot to a group chat (you'll become the host)
+3. Open the Mini App from the group
+4. Mini App should recognize you as the host
 
 ---
 

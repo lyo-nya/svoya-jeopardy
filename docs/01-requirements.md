@@ -24,7 +24,7 @@ A Telegram Mini App for playing Jeopardy-style trivia at a New Year's Eve party.
 **Acceptance Criteria:**
 - Mini app can be launched from a Telegram group chat
 - All group chat members are automatically recognized as players
-- Host role is assigned to the player who starts the game
+- Host role is assigned to the player who added the mini app to the chat
 
 ---
 

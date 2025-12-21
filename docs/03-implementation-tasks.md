@@ -44,13 +44,19 @@ This document breaks down the implementation into concrete tasks. Estimated tota
 - [ ] Extract and store user info (id, name, photo)
 - [ ] Handle validation failures gracefully
 
-### Task 2.2: Session Management
+### Task 2.2: Bot Webhook for Host Detection
+- [ ] Create `/webhook` endpoint for Telegram bot updates
+- [ ] Handle `my_chat_member` update type
+- [ ] When bot is added to group, store adder as host in games table
+- [ ] Register webhook URL with Telegram API
+
+### Task 2.3: Session Management
 - [ ] Store current user in Flask session/context
 - [ ] Create `get_current_player()` helper
 - [ ] Create `get_current_game()` helper (from chat_id)
 - [ ] Implement host detection
 
-### Task 2.3: Frontend Telegram Integration
+### Task 2.4: Frontend Telegram Integration
 - [ ] Create `telegram.js` for WebApp API
 - [ ] Initialize WebApp and expand
 - [ ] Apply Telegram theme colors
@@ -256,7 +262,7 @@ This document breaks down the implementation into concrete tasks. Estimated tota
 | Phase | Tasks | Est. Time |
 |-------|-------|-----------|
 | 1. Project Setup | 3 | 1-2h |
-| 2. Telegram Integration | 3 | 1-2h |
+| 2. Telegram Integration | 4 | 1-2h |
 | 3. Templates & Styling | 3 | 2-3h |
 | 4. Question Submission | 3 | 2-3h |
 | 5. Lobby & Game Start | 2 | 1-2h |
@@ -264,7 +270,7 @@ This document breaks down the implementation into concrete tasks. Estimated tota
 | 7. Scores & Results | 2 | 1h |
 | 8. Polish & Testing | 4 | 1-2h |
 | 9. Deployment | 4 | 1-2h |
-| **Total** | **31 tasks** | **12-16h** |
+| **Total** | **32 tasks** | **12-16h** |
 
 ---
 

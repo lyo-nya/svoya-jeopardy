@@ -99,7 +99,7 @@
 CREATE TABLE games (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     chat_id INTEGER NOT NULL UNIQUE,
-    host_telegram_id INTEGER NOT NULL,
+    host_telegram_id INTEGER NOT NULL, -- whoever added the bot to the chat
     status TEXT DEFAULT 'setup', -- setup, in_progress, completed
     current_round_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -179,6 +179,12 @@ CREATE TABLE round_scores (
 | `/game/question/<id>` | GET | Display single question | Host |
 | `/scores` | GET | Scoreboard view | All |
 | `/results` | GET | Final results page | All |
+
+### Webhook Routes
+
+| Route | Method | Description | Access |
+|-------|--------|-------------|--------|
+| `/webhook` | POST | Telegram bot webhook (receives updates) | Telegram |
 
 ### Action Routes (Form POST / Redirects)
 
@@ -425,6 +431,15 @@ jeopardy/
 4. Extract user info (id, name, photo) from validated data
 5. Create/update player in database
 6. Store user session
+
+### Host Detection
+
+When the bot is added to a group chat, Telegram sends a `my_chat_member` update to the bot. We capture this to determine the host:
+
+1. Bot receives `my_chat_member` update when added to a group
+2. Store the `from.id` (who added the bot) as the host for that `chat.id`
+3. When players open the Mini App, check if they match the stored host ID
+4. If no host is stored yet (e.g., bot was added before this feature), first person to open becomes host
 
 ### initData Validation (Python)
 
