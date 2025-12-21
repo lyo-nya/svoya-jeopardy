@@ -189,8 +189,10 @@ This document breaks down the implementation into concrete tasks. Estimated tota
 ### Task 7.2: Final Results
 - [ ] Detect when all rounds completed
 - [ ] Create `/results` route
-- [ ] Calculate final standings
+- [ ] Calculate final standings (overall totals)
+- [ ] Query per-round scores for breakdown table
 - [ ] Create `results.html` with celebration styling
+- [ ] Display overall standings and per-round breakdown
 - [ ] Highlight winner
 
 ---

@@ -131,7 +131,8 @@ A Telegram Mini App for playing Jeopardy-style trivia at a New Year's Eve party.
 **Acceptance Criteria:**
 - After all 5 rounds, game shows final standings
 - Winner is highlighted with festive New Year styling
-- Final scores for all players are displayed
+- Overall total scores for all players are displayed
+- Per-round score breakdown is shown (how each player scored in each round)
 
 ---
 
