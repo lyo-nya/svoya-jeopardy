@@ -169,12 +169,7 @@ This document breaks down the implementation into concrete tasks. Estimated tota
 - [ ] Add points to player's round score
 - [ ] Redirect back to game board
 
-### Task 6.6: Skip Question
-- [ ] Create `/game/skip/<question_id>` POST route
-- [ ] Mark question as answered (no winner)
-- [ ] Redirect back to game board
-
-### Task 6.7: Round Completion
+### Task 6.6: Round Completion
 - [ ] Detect when all 20 questions answered
 - [ ] Create `/game/next-round` POST route
 - [ ] Add round scores to total scores
@@ -266,11 +261,11 @@ This document breaks down the implementation into concrete tasks. Estimated tota
 | 3. Templates & Styling | 3 | 2-3h |
 | 4. Question Submission | 3 | 2-3h |
 | 5. Lobby & Game Start | 2 | 1-2h |
-| 6. Game Board & Gameplay | 7 | 3-4h |
+| 6. Game Board & Gameplay | 6 | 3-4h |
 | 7. Scores & Results | 2 | 1h |
 | 8. Polish & Testing | 4 | 1-2h |
 | 9. Deployment | 4 | 1-2h |
-| **Total** | **32 tasks** | **12-16h** |
+| **Total** | **31 tasks** | **12-16h** |
 
 ---
 

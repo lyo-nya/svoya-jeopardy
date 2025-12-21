@@ -98,7 +98,6 @@ A Telegram Mini App for playing Jeopardy-style trivia at a New Year's Eve party.
 - After revealing answer, host sees a list of eligible players (excluding the question author)
 - Host taps the player who answered correctly
 - That player receives the question's point value
-- If no one got it right, host can tap "No one" to skip
 - Board updates to show question as answered
 
 ---

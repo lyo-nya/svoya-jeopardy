@@ -196,7 +196,6 @@ CREATE TABLE round_scores (
 | `/game/select-round/<player_id>` | POST | Select whose round to play | Host |
 | `/game/reveal/<question_id>` | POST | Mark question as revealed | Host |
 | `/game/award/<question_id>/<player_id>` | POST | Award points to player | Host |
-| `/game/skip/<question_id>` | POST | Skip question (no winner) | Host |
 | `/game/next-round` | POST | Proceed to next round | Host |
 
 ## Page Designs
@@ -345,7 +344,6 @@ CREATE TABLE round_scores (
 ├─────────────────────────────────────┤
 │  Who got it right?                  │
 │  [Bob] [Charlie] [Diana] [Eve]      │
-│  [No one]                           │
 └─────────────────────────────────────┘
 ```
 
