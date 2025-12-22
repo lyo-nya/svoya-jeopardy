@@ -5,7 +5,7 @@ import hashlib
 import json
 from urllib.parse import parse_qs
 from functools import wraps
-from flask import request, current_app, g, redirect, url_for
+from flask import request, current_app, g
 from app import db
 from app.models import Game, Player
 
@@ -202,20 +202,6 @@ def telegram_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         telegram_data = get_telegram_data()
-        
-        # In development, allow bypass with mock data
-        if not telegram_data and current_app.debug:
-            # Create mock data for development
-            telegram_data = {
-                "user": {
-                    "id": 12345,
-                    "first_name": "Dev",
-                    "last_name": "User",
-                },
-                "chat": {
-                    "id": -100123456789,
-                },
-            }
         
         if not telegram_data:
             return "Unauthorized: Invalid Telegram data", 401
