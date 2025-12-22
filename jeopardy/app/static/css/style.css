@@ -301,9 +301,19 @@ hr {
     margin: 24px 0;
 }
 
-.score-row {
+.scoreboard-header {
     display: flex;
     justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 2px solid #ffd700;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #ffd700;
+}
+
+.score-row {
+    display: flex;
+    align-items: center;
     padding: 8px 0;
     border-bottom: 1px solid #444;
 }
@@ -312,32 +322,105 @@ hr {
     border-bottom: none;
 }
 
-.sitting-out {
+.score-row .player-name {
+    flex: 1;
+}
+
+.score-row .round-score {
+    width: 80px;
+    text-align: right;
+}
+
+.score-row .total-score {
+    width: 80px;
+    text-align: right;
+    font-weight: bold;
+}
+
+.score-row.sitting-out {
     color: #888;
     font-style: italic;
 }
 
+.sitting-label {
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+.round-complete {
+    text-align: center;
+    margin: 24px 0;
+    padding: 16px;
+    background: #2d5a27;
+    border-radius: 12px;
+}
+
+.game-actions {
+    text-align: center;
+    margin: 24px 0;
+}
+
 /* Question display */
+.question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 16px 0;
+    padding: 12px;
+    background: #2a2a4e;
+    border-radius: 8px;
+}
+
+.question-category {
+    font-weight: bold;
+    color: #ffd700;
+}
+
+.question-points {
+    font-size: 18px;
+}
+
 .question-display {
     text-align: center;
     padding: 40px 20px;
+    background: #232342;
+    border-radius: 12px;
+    margin: 24px 0;
 }
 
 .question-text {
     font-size: 24px;
     margin-bottom: 24px;
+    line-height: 1.4;
 }
 
 .question-image {
     max-width: 100%;
+    max-height: 300px;
     border-radius: 12px;
     margin-bottom: 24px;
+}
+
+.answer-section {
+    margin: 32px 0;
+    padding: 24px;
+    background: #1a1a2e;
+    border-radius: 12px;
+}
+
+.answer-label {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 8px;
 }
 
 .answer-text {
     font-size: 28px;
     color: #ffd700;
-    margin: 24px 0;
+}
+
+.award-section {
+    margin-top: 32px;
 }
 
 .player-buttons {
@@ -345,7 +428,25 @@ hr {
     flex-wrap: wrap;
     gap: 12px;
     justify-content: center;
+    margin-top: 16px;
+}
+
+.skip-section {
     margin-top: 24px;
+}
+
+.btn-secondary {
+    background: #444;
+}
+
+.reveal-btn {
+    font-size: 20px;
+    padding: 16px 48px;
+}
+
+.waiting-text {
+    color: #888;
+    font-style: italic;
 }
 
 /* Results */
