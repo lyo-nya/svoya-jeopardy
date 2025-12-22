@@ -450,32 +450,231 @@ hr {
 }
 
 /* Results */
+.results-page {
+    position: relative;
+    overflow: hidden;
+}
+
+.happy-new-year {
+    text-align: center;
+    font-size: 18px;
+    color: #ffd700;
+    margin-top: -16px;
+    margin-bottom: 24px;
+}
+
 .winner-section {
     text-align: center;
-    padding: 40px 0;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #2a2a4e 0%, #1a1a2e 100%);
+    border-radius: 16px;
+    margin: 24px 0;
+    border: 2px solid #ffd700;
+    position: relative;
+}
+
+.trophy-icon {
+    font-size: 64px;
+    animation: bounce 1s ease infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.winner-label {
+    font-size: 14px;
+    letter-spacing: 4px;
+    color: #ffd700;
+    margin-top: 8px;
 }
 
 .winner-name {
-    font-size: 36px;
+    font-size: 32px;
     color: #ffd700;
+    margin: 12px 0;
+    font-weight: bold;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.winner-score {
+    font-size: 24px;
+    color: #fff;
+}
+
+/* Confetti animation */
+.confetti {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 100;
+}
+
+.confetti-piece {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    top: -20px;
+    animation: confetti-fall 4s linear infinite;
+}
+
+.confetti-piece:nth-child(1) { left: 10%; background: #ffd700; animation-delay: 0s; }
+.confetti-piece:nth-child(2) { left: 20%; background: #ff6b6b; animation-delay: 0.3s; border-radius: 50%; }
+.confetti-piece:nth-child(3) { left: 30%; background: #4ade80; animation-delay: 0.6s; }
+.confetti-piece:nth-child(4) { left: 40%; background: #60a5fa; animation-delay: 0.9s; border-radius: 50%; }
+.confetti-piece:nth-child(5) { left: 50%; background: #ffd700; animation-delay: 1.2s; }
+.confetti-piece:nth-child(6) { left: 60%; background: #f472b6; animation-delay: 1.5s; border-radius: 50%; }
+.confetti-piece:nth-child(7) { left: 70%; background: #ffd700; animation-delay: 1.8s; }
+.confetti-piece:nth-child(8) { left: 80%; background: #34d399; animation-delay: 2.1s; border-radius: 50%; }
+.confetti-piece:nth-child(9) { left: 90%; background: #a78bfa; animation-delay: 2.4s; }
+.confetti-piece:nth-child(10) { left: 5%; background: #ffd700; animation-delay: 2.7s; border-radius: 50%; }
+
+@keyframes confetti-fall {
+    0% {
+        top: -20px;
+        transform: rotate(0deg) translateX(0);
+        opacity: 1;
+    }
+    100% {
+        top: 100vh;
+        transform: rotate(720deg) translateX(100px);
+        opacity: 0;
+    }
 }
 
 .standings {
     margin: 24px 0;
 }
 
+.standings h3 {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
 .standing-row {
     display: flex;
-    justify-content: space-between;
-    padding: 12px;
+    align-items: center;
+    padding: 12px 16px;
     background: #2a2a4e;
     border-radius: 8px;
     margin-bottom: 8px;
+    gap: 12px;
 }
 
-.standing-row.winner {
-    background: #ffd700;
+.standing-row .rank {
+    font-size: 20px;
+    min-width: 32px;
+}
+
+.standing-row .name {
+    flex: 1;
+    font-weight: 500;
+}
+
+.standing-row .score {
+    font-weight: bold;
+    color: #ffd700;
+}
+
+.standing-row.first {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
     color: #1a1a2e;
+}
+
+.standing-row.first .score {
+    color: #1a1a2e;
+}
+
+.standing-row.second {
+    background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+    color: #1a1a2e;
+}
+
+.standing-row.second .score {
+    color: #1a1a2e;
+}
+
+.standing-row.third {
+    background: linear-gradient(135deg, #cd7f32 0%, #e6a55a 100%);
+    color: #1a1a2e;
+}
+
+.standing-row.third .score {
+    color: #1a1a2e;
+}
+
+/* Round breakdown table */
+.round-breakdown {
+    margin: 32px 0;
+}
+
+.round-breakdown h3 {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.breakdown-table-wrapper {
+    overflow-x: auto;
+    margin: 0 -16px;
+    padding: 0 16px;
+}
+
+.breakdown-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #2a2a4e;
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: 14px;
+}
+
+.breakdown-table th,
+.breakdown-table td {
+    padding: 10px 8px;
+    text-align: center;
+    border-bottom: 1px solid #3a3a5e;
+}
+
+.breakdown-table th {
+    background: #1a1a2e;
+    color: #ffd700;
+    font-weight: 600;
+}
+
+.breakdown-table .round-cell {
+    text-align: left;
+    font-weight: 500;
+}
+
+.breakdown-table .round-author {
+    font-size: 11px;
+    color: #888;
+    display: block;
+}
+
+.breakdown-table .sitting-out-cell {
+    color: #666;
+}
+
+.breakdown-table .total-row {
+    background: #1a1a2e;
+}
+
+.breakdown-table .total-row td {
+    border-bottom: none;
+    color: #ffd700;
+}
+
+.celebration-footer {
+    text-align: center;
+    margin-top: 32px;
+    padding: 24px;
+    font-size: 18px;
 }
 
 /* Round selection */
@@ -516,4 +715,155 @@ hr {
 
 .current-standings {
     margin: 24px 0;
+}
+
+/* Error pages */
+.error-page {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.error-icon {
+    font-size: 64px;
+    margin-bottom: 24px;
+}
+
+.error-page h1 {
+    color: #fff;
+    margin-bottom: 16px;
+}
+
+.error-message {
+    color: #aaa;
+    font-size: 16px;
+    margin-bottom: 24px;
+}
+
+.error-code {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 32px;
+}
+
+.error-actions {
+    margin-top: 24px;
+}
+
+/* Scores page improvements */
+.current-round-info {
+    background: #2a2a4e;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+
+.current-round-info h3 {
+    margin-bottom: 8px;
+    color: #ffd700;
+}
+
+.current-round-info p {
+    color: #aaa;
+    margin-bottom: 16px;
+}
+
+.round-scoreboard {
+    margin-top: 16px;
+}
+
+.round-scoreboard h4 {
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: #888;
+}
+
+.round-scoreboard .score-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #1a1a2e;
+    border-radius: 6px;
+    margin-bottom: 6px;
+}
+
+.round-scoreboard .round-pts {
+    color: #4ade80;
+    font-weight: bold;
+}
+
+.completed-rounds-section {
+    margin: 24px 0;
+    padding: 16px;
+    background: #232342;
+    border-radius: 12px;
+}
+
+.completed-rounds-section h3 {
+    margin-bottom: 12px;
+}
+
+/* Additional polish */
+h2 {
+    color: #ddd;
+    text-align: center;
+    font-size: 18px;
+    margin-bottom: 24px;
+}
+
+/* Subtle glow effect for gold elements */
+.btn-primary {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Smooth transitions */
+.btn {
+    transition: all 0.2s ease;
+}
+
+.question-cell {
+    transition: all 0.15s ease;
+}
+
+.question-cell:hover:not(.answered) {
+    transform: scale(1.02);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+/* Better spacing for mobile */
+@media (max-width: 400px) {
+    body {
+        padding: 12px;
+    }
+    
+    h1 {
+        font-size: 24px;
+    }
+    
+    .winner-name {
+        font-size: 24px;
+    }
+    
+    .question-text {
+        font-size: 20px;
+    }
+    
+    .game-board {
+        gap: 4px;
+    }
+    
+    .category-header-cell {
+        padding: 8px 4px;
+        font-size: 12px;
+    }
+    
+    .question-cell {
+        padding: 12px;
+        font-size: 16px;
+    }
 }

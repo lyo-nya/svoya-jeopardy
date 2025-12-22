@@ -102,11 +102,30 @@ def scores():
     players = list(game.players.order_by("total_score").all())
     players.reverse()  # Highest first
     
+    # Get current round info if game is in progress
+    from app.models import Round, RoundScore
+    current_round = None
+    round_scores = {}
+    sitting_out_player = None
+    
+    if game.status == "in_progress" and game.current_round_id:
+        current_round = Round.query.get(game.current_round_id)
+        if current_round:
+            sitting_out_player = current_round.player
+            round_scores = {rs.player_id: rs.score for rs in current_round.round_scores}
+    
+    # Get completed rounds
+    completed_rounds = Round.query.filter_by(game_id=game.id, status="completed").order_by(Round.round_number).all()
+    
     return render_template(
         "scores.html",
         game=game,
         player=player,
         players=players,
+        current_round=current_round,
+        round_scores=round_scores,
+        sitting_out_player=sitting_out_player,
+        completed_rounds=completed_rounds,
     )
 
 
@@ -129,8 +148,13 @@ def results():
     players = list(game.players.order_by("total_score").all())
     players.reverse()  # Highest first
     
-    # Get all rounds for breakdown
-    rounds = list(game.rounds.order_by("round_number").all())
+    # Get all rounds for breakdown, with round_scores eagerly loaded
+    from app.models import Round, RoundScore
+    rounds = Round.query.filter_by(game_id=game.id).order_by(Round.round_number).all()
+    
+    # Preload round_scores for each round to avoid N+1 queries
+    for r in rounds:
+        r.scores_list = list(r.round_scores.all())
     
     return render_template(
         "results.html",

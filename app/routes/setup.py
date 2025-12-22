@@ -3,6 +3,7 @@
 import os
 from flask import render_template, request, redirect, url_for, flash, current_app, g, send_from_directory
 from werkzeug.utils import secure_filename
+from sqlalchemy.exc import SQLAlchemyError
 from PIL import Image
 from app.routes import setup_bp
 from app import db
@@ -10,6 +11,7 @@ from app.models import Category, Question
 from app.services import telegram_required, get_chat_id, get_or_create_game, get_or_create_player
 
 POINT_VALUES = [100, 200, 300, 400, 500]
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB
 
 
 def allowed_file(filename: str) -> bool:
@@ -147,59 +149,91 @@ def save_category(pos: int):
         flash("Game has already started. You cannot edit questions.", "error")
         return redirect(url_for("main.lobby"))
     
-    # Get or create category
-    category = Category.query.filter_by(player_id=player.id, position=pos).first()
-    
-    if not category:
-        category = Category(player_id=player.id, position=pos, name="")
-        db.session.add(category)
-    
-    # Update category name
-    category.name = request.form.get("category_name", "").strip()
-    
-    if not category.name:
-        flash("Category name is required", "error")
-        return redirect(url_for("setup.edit_category", pos=pos))
-    
-    db.session.commit()
-    
-    # Get existing questions as dict by points
-    existing_questions = {q.points: q for q in category.questions}
-    
-    # Process each question
-    for i in range(5):
-        points = POINT_VALUES[i]
-        question_text = request.form.get(f"question_{i}", "").strip()
-        answer_text = request.form.get(f"answer_{i}", "").strip()
+    try:
+        # Get or create category
+        category = Category.query.filter_by(player_id=player.id, position=pos).first()
         
-        if not question_text or not answer_text:
-            flash(f"Question {i + 1} is incomplete", "error")
+        if not category:
+            category = Category(player_id=player.id, position=pos, name="")
+            db.session.add(category)
+        
+        # Update category name
+        category_name = request.form.get("category_name", "").strip()
+        
+        if not category_name:
+            flash("Category name is required", "error")
             return redirect(url_for("setup.edit_category", pos=pos))
         
-        # Get or create question
-        question = existing_questions.get(points)
+        # Validate category name length
+        if len(category_name) > 50:
+            flash("Category name must be 50 characters or less", "error")
+            return redirect(url_for("setup.edit_category", pos=pos))
         
-        if not question:
-            question = Question(category_id=category.id, points=points, text="", answer="")
-            db.session.add(question)
-        
-        question.text = question_text
-        question.answer = answer_text
-        
-        # Handle image upload
-        image_file = request.files.get(f"image_{i}")
-        if image_file and image_file.filename:
-            image_path = save_image(image_file, player.id, pos * 5 + i)
-            if image_path:
-                question.image_path = image_path
-    
-    db.session.commit()
-    
-    # Check if all 4 categories are complete
-    category_count = Category.query.filter_by(player_id=player.id).count()
-    if category_count >= 4:
-        player.questions_submitted = True
+        category.name = category_name
         db.session.commit()
+        
+        # Get existing questions as dict by points
+        existing_questions = {q.points: q for q in category.questions}
+        
+        # Process each question
+        for i in range(5):
+            points = POINT_VALUES[i]
+            question_text = request.form.get(f"question_{i}", "").strip()
+            answer_text = request.form.get(f"answer_{i}", "").strip()
+            
+            if not question_text or not answer_text:
+                flash(f"Question {i + 1} is incomplete", "error")
+                return redirect(url_for("setup.edit_category", pos=pos))
+            
+            # Validate lengths
+            if len(question_text) > 1000:
+                flash(f"Question {i + 1} is too long (max 1000 characters)", "error")
+                return redirect(url_for("setup.edit_category", pos=pos))
+            
+            if len(answer_text) > 500:
+                flash(f"Answer {i + 1} is too long (max 500 characters)", "error")
+                return redirect(url_for("setup.edit_category", pos=pos))
+            
+            # Get or create question
+            question = existing_questions.get(points)
+            
+            if not question:
+                question = Question(category_id=category.id, points=points, text="", answer="")
+                db.session.add(question)
+            
+            question.text = question_text
+            question.answer = answer_text
+            
+            # Handle image upload
+            image_file = request.files.get(f"image_{i}")
+            if image_file and image_file.filename:
+                # Check file size
+                image_file.seek(0, 2)  # Seek to end
+                file_size = image_file.tell()
+                image_file.seek(0)  # Reset position
+                
+                if file_size > MAX_IMAGE_SIZE:
+                    flash(f"Image for question {i + 1} is too large (max 5MB)", "error")
+                    return redirect(url_for("setup.edit_category", pos=pos))
+                
+                image_path = save_image(image_file, player.id, pos * 5 + i)
+                if image_path:
+                    question.image_path = image_path
+                else:
+                    flash(f"Failed to save image for question {i + 1}. Invalid file type.", "error")
+        
+        db.session.commit()
+        
+        # Check if all 4 categories are complete
+        category_count = Category.query.filter_by(player_id=player.id).count()
+        if category_count >= 4:
+            player.questions_submitted = True
+            db.session.commit()
+        
+        flash(f"Category '{category.name}' saved!", "success")
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Database error saving category: {e}")
+        flash("An error occurred. Please try again.", "error")
     
-    flash(f"Category '{category.name}' saved!", "success")
     return redirect(url_for("setup.setup_overview"))

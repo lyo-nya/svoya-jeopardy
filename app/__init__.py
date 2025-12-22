@@ -1,7 +1,7 @@
 """Flask application factory for New Year Jeopardy Party Game."""
 
 import os
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -38,8 +38,28 @@ def create_app(config_name=None):
     app.register_blueprint(game_bp, url_prefix="/game")
     app.register_blueprint(webhook_bp, url_prefix="/webhook")
 
+    # Register error handlers
+    register_error_handlers(app)
+
     # Create database tables
     with app.app_context():
         db.create_all()
 
     return app
+
+
+def register_error_handlers(app):
+    """Register custom error handlers."""
+    
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return render_template("errors/404.html"), 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        db.session.rollback()  # Roll back any failed database transactions
+        return render_template("errors/500.html"), 500
+    
+    @app.errorhandler(403)
+    def forbidden_error(error):
+        return render_template("errors/404.html"), 403  # Reuse 404 template for simplicity
