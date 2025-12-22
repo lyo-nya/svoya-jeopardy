@@ -19,8 +19,7 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                      AWS EC2 Instance                        │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │                   Nginx (Reverse Proxy)              │   │
-│  │                   + SSL Termination                  │   │
+│  │              Caddy (Reverse Proxy + Auto-SSL)        │   │
 │  └─────────────────────────────────────────────────────┘   │
 │                              │                              │
 │                              ▼                              │
@@ -48,7 +47,7 @@
 | Backend | Flask (Python) | Simple, readable, great for SSR |
 | Database | SQLite | Simple, no separate server needed |
 | File Storage | Local filesystem | Simple, adequate for 5 users |
-| Web Server | Nginx | SSL, reverse proxy, static files |
+| Web Server | Caddy | Auto-SSL, reverse proxy |
 | Process Manager | Gunicorn | Production-ready WSGI server |
 | Containerization | Docker + Docker Compose | Easy deployment |
 | CI/CD | GitHub Actions | Auto-deploy on push to main |
@@ -428,8 +427,7 @@ jeopardy/
 ├── requirements.txt
 ├── Dockerfile
 ├── docker-compose.yml
-├── nginx.conf
-├── gunicorn.conf.py
+├── Caddyfile
 └── README.md
 ```
 
