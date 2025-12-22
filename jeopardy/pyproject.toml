@@ -1,0 +1,18 @@
+[project]
+name = "jeopardy"
+version = "0.1.0"
+description = "New Year Jeopardy Party Game - A Telegram Mini App for playing Jeopardy-style trivia"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.1.2",
+    "flask-sqlalchemy>=3.1.1",
+    "gunicorn>=23.0.0",
+    "pillow>=12.0.0",
+]
+
+[project.scripts]
+start = "gunicorn:main"
+
+[tool.railpack]
+start = "gunicorn --bind 0.0.0.0:$PORT 'app:create_app()'"
