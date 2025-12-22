@@ -1,29 +1,31 @@
 """Services for New Year Jeopardy Party Game."""
 
 from app.services.telegram import (
-    validate_telegram_data,
-    get_telegram_data,
+    game_context_required,
     get_chat_id,
     get_current_game,
-    get_or_create_game,
     get_current_player,
+    get_or_create_game,
     get_or_create_player,
-    is_host,
-    telegram_required,
+    get_telegram_data,
     host_required,
+    is_host,
     send_webapp_button,
+    telegram_required,
+    validate_init_data,
 )
 
 __all__ = [
-    "validate_telegram_data",
-    "get_telegram_data",
+    "game_context_required",
     "get_chat_id",
     "get_current_game",
-    "get_or_create_game",
     "get_current_player",
+    "get_or_create_game",
     "get_or_create_player",
-    "is_host",
-    "telegram_required",
+    "get_telegram_data",
     "host_required",
+    "is_host",
     "send_webapp_button",
+    "telegram_required",
+    "validate_init_data",
 ]
