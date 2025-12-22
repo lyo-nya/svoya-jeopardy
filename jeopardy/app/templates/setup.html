@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Questions - New Year Jeopardy{% endblock %}
+
+{% block content %}
+<h1>🎄 New Year Jeopardy 🎄</h1>
+<h2>Submit Your Questions</h2>
+
+<p>Hello, <strong>{{ player.name }}</strong>! Create 4 categories with 5 questions each.</p>
+
+<div class="categories-list">
+    {% for pos in range(4) %}
+        {% set category = categories.get(pos) %}
+        <div class="category-card">
+            <div class="category-header">
+                <span class="category-position">Category {{ pos + 1 }}</span>
+                {% if category %}
+                    <span class="status status-ready">✓ Ready</span>
+                {% else %}
+                    <span class="status status-empty">○ Empty</span>
+                {% endif %}
+            </div>
+            
+            {% if category %}
+                <div class="category-name">{{ category.name }}</div>
+                <div class="questions-preview">
+                    {% for question in category.questions %}
+                        <div class="question-preview">
+                            {{ question.points }} pts: {{ question.text[:30] }}{% if question.text|length > 30 %}...{% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="category-name empty">Not created yet</div>
+            {% endif %}
+            
+            <a href="{{ url_for('setup.edit_category', pos=pos) }}" class="btn">
+                {% if category %}Edit Category{% else %}Add Category{% endif %}
+            </a>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="progress">
+    <p>Progress: {{ categories|length }}/4 categories done</p>
+    {% if categories|length == 4 %}
+        <p class="ready-message">✨ You're all set! Wait for other players in the lobby.</p>
+    {% endif %}
+</div>
+
+<a href="{{ url_for('main.lobby') }}" class="btn btn-primary">Go to Lobby</a>
+{% endblock %}
