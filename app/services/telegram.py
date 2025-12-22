@@ -3,11 +3,84 @@
 import hmac
 import hashlib
 import json
-from urllib.parse import parse_qs
+import requests
+from urllib.parse import parse_qs, unquote
 from functools import wraps
 from flask import request, current_app, g
 from app import db
 from app.models import Game, Player
+
+
+def send_webapp_button(chat_id: int, bot_token: str, app_url: str) -> bool:
+    """
+    Send a message to a chat with a button to open the WebApp.
+    
+    Args:
+        chat_id: The Telegram chat ID
+        bot_token: The bot's API token
+        app_url: The base URL of the web app (e.g., https://svoya-jeopardy.fly.dev)
+        
+    Returns:
+        True if message was sent successfully, False otherwise
+    """
+    if not bot_token or not app_url:
+        current_app.logger.error(
+            f"send_webapp_button: Missing bot_token={bool(bot_token)}, app_url={bool(app_url)}"
+        )
+        return False
+    
+    # Clean up the app_url (remove trailing slash if present)
+    app_url = app_url.rstrip("/")
+    
+    # The WebApp URL - Telegram will include chat info in initData automatically
+    # when the button is pressed in a group chat
+    webapp_url = app_url
+    
+    current_app.logger.info(f"Sending WebApp button to chat {chat_id} with URL: {webapp_url}")
+    
+    # Create inline keyboard with WebApp button
+    keyboard = {
+        "inline_keyboard": [[
+            {
+                "text": "🎮 Play New Year Jeopardy!",
+                "web_app": {"url": webapp_url}
+            }
+        ]]
+    }
+    
+    payload = {
+        "chat_id": chat_id,
+        "text": "🎆 *New Year Jeopardy Party Game* 🎆\n\n"
+                "Welcome! I'm here to host a fun Jeopardy-style party game.\n\n"
+                "📋 *How to play:*\n"
+                "1. Each player creates their own questions\n"
+                "2. Take turns answering each other's questions\n"
+                "3. Earn points for correct answers\n"
+                "4. Most points wins! 🏆\n\n"
+                "Click the button below to join the game!",
+        "parse_mode": "Markdown",
+        "reply_markup": json.dumps(keyboard)
+    }
+    
+    try:
+        response = requests.post(
+            f"https://api.telegram.org/bot{bot_token}/sendMessage",
+            json=payload,
+            timeout=10
+        )
+        result = response.json()
+        if response.status_code == 200 and result.get("ok"):
+            current_app.logger.info(f"Successfully sent WebApp button to chat {chat_id}")
+            return True
+        else:
+            current_app.logger.error(
+                f"Failed to send message to chat {chat_id}: "
+                f"status={response.status_code}, response={result}"
+            )
+            return False
+    except Exception as e:
+        current_app.logger.error(f"Error sending message to chat {chat_id}: {e}")
+        return False
 
 
 def validate_telegram_data(init_data: str, bot_token: str) -> dict | None:
@@ -21,20 +94,33 @@ def validate_telegram_data(init_data: str, bot_token: str) -> dict | None:
     - start_param: str (optional, contains chat_id for group chats)
     """
     if not init_data or not bot_token:
+        current_app.logger.warning(
+            f"Validation failed: init_data={'empty' if not init_data else 'present'}, "
+            f"bot_token={'empty' if not bot_token else 'present'}"
+        )
         return None
     
-    parsed = parse_qs(init_data)
+    # Parse the init_data string manually to preserve the exact values
+    # init_data format: key1=value1&key2=value2&...
+    pairs = {}
+    received_hash = None
     
-    # Extract hash
-    received_hash = parsed.get("hash", [None])[0]
+    for part in init_data.split("&"):
+        if "=" in part:
+            key, value = part.split("=", 1)
+            # URL decode the value
+            decoded_value = unquote(value)
+            if key == "hash":
+                received_hash = decoded_value
+            else:
+                pairs[key] = decoded_value
+    
     if not received_hash:
+        current_app.logger.warning("Validation failed: no hash in init_data")
         return None
     
     # Build data check string (sorted key=value pairs, excluding hash)
-    data_pairs = []
-    for key, value in parsed.items():
-        if key != "hash":
-            data_pairs.append(f"{key}={value[0]}")
+    data_pairs = [f"{k}={v}" for k, v in pairs.items()]
     data_pairs.sort()
     data_check_string = "\n".join(data_pairs)
     
@@ -53,28 +139,40 @@ def validate_telegram_data(init_data: str, bot_token: str) -> dict | None:
     
     # Verify hash
     if not hmac.compare_digest(received_hash, expected_hash):
+        current_app.logger.warning(
+            f"Validation failed: hash mismatch. "
+            f"Data check string (first 100 chars): {data_check_string[:100]}..."
+        )
         return None
+    
+    current_app.logger.info("Telegram data validated successfully")
     
     # Parse and return data
     result = {}
     
     # Parse user data
-    user_json = parsed.get("user", [None])[0]
-    if user_json:
-        result["user"] = json.loads(user_json)
+    if "user" in pairs:
+        try:
+            result["user"] = json.loads(pairs["user"])
+        except json.JSONDecodeError as e:
+            current_app.logger.error(f"Failed to parse user JSON: {e}")
+            return None
     
     # Parse chat data (for group chats)
-    chat_json = parsed.get("chat", [None])[0]
-    if chat_json:
-        result["chat"] = json.loads(chat_json)
+    if "chat" in pairs:
+        try:
+            result["chat"] = json.loads(pairs["chat"])
+        except json.JSONDecodeError as e:
+            current_app.logger.error(f"Failed to parse chat JSON: {e}")
+            return None
     
     # Other fields
-    if "chat_instance" in parsed:
-        result["chat_instance"] = parsed["chat_instance"][0]
-    if "chat_type" in parsed:
-        result["chat_type"] = parsed["chat_type"][0]
-    if "start_param" in parsed:
-        result["start_param"] = parsed["start_param"][0]
+    if "chat_instance" in pairs:
+        result["chat_instance"] = pairs["chat_instance"]
+    if "chat_type" in pairs:
+        result["chat_type"] = pairs["chat_type"]
+    if "start_param" in pairs:
+        result["start_param"] = pairs["start_param"]
     
     return result
 
@@ -85,9 +183,18 @@ def get_telegram_data() -> dict | None:
     init_data = request.form.get("init_data") or request.args.get("init_data")
     
     if not init_data:
+        current_app.logger.warning(
+            f"No init_data found in request. "
+            f"Form keys: {list(request.form.keys())}, "
+            f"Args keys: {list(request.args.keys())}"
+        )
         return None
     
     bot_token = current_app.config.get("TELEGRAM_BOT_TOKEN", "")
+    if not bot_token:
+        current_app.logger.error("TELEGRAM_BOT_TOKEN not configured!")
+        return None
+        
     return validate_telegram_data(init_data, bot_token)
 
 
@@ -204,7 +311,17 @@ def telegram_required(f):
         telegram_data = get_telegram_data()
         
         if not telegram_data:
-            return "Unauthorized: Invalid Telegram data", 401
+            current_app.logger.error(
+                f"Authorization failed for {request.path}. "
+                f"Method: {request.method}, "
+                f"Has init_data in form: {'init_data' in request.form}, "
+                f"Has init_data in args: {'init_data' in request.args}"
+            )
+            return (
+                "Authorization Error: Unable to verify Telegram authentication. "
+                "Please try closing and reopening the app from Telegram.",
+                401
+            )
         
         # Store in Flask g object for access in route handlers
         g.telegram_data = telegram_data

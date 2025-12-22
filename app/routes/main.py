@@ -1,6 +1,6 @@
 """Main routes for New Year Jeopardy Party Game."""
 
-from flask import redirect, url_for, render_template, g
+from flask import redirect, url_for, render_template, g, current_app, jsonify, request
 from app.routes import main_bp
 from app.services import (
     telegram_required,
@@ -120,3 +120,49 @@ def results():
         players=players,
         rounds=rounds,
     )
+
+
+@main_bp.route("/health")
+def health_check():
+    """Health check endpoint for monitoring and debugging."""
+    bot_token = current_app.config.get("TELEGRAM_BOT_TOKEN", "")
+    app_url = current_app.config.get("APP_URL", "")
+    
+    return jsonify({
+        "status": "ok",
+        "config": {
+            "bot_token_configured": bool(bot_token),
+            "bot_token_length": len(bot_token) if bot_token else 0,
+            "app_url_configured": bool(app_url),
+            "app_url": app_url if app_url else "NOT SET",
+        }
+    })
+
+
+@main_bp.route("/debug/init")
+def debug_init():
+    """Debug endpoint to check init_data parsing."""
+    init_data = request.args.get("init_data", "")
+    
+    if not init_data:
+        return jsonify({
+            "error": "No init_data provided",
+            "hint": "This endpoint is for debugging Telegram WebApp authentication"
+        })
+    
+    # Try to parse without validation
+    from urllib.parse import unquote
+    pairs = {}
+    for part in init_data.split("&"):
+        if "=" in part:
+            key, value = part.split("=", 1)
+            pairs[key] = unquote(value)[:50] + "..." if len(unquote(value)) > 50 else unquote(value)
+    
+    return jsonify({
+        "parsed_keys": list(pairs.keys()),
+        "has_hash": "hash" in pairs,
+        "has_user": "user" in pairs,
+        "has_chat": "chat" in pairs,
+        "has_chat_instance": "chat_instance" in pairs,
+        "sample_values": {k: v for k, v in pairs.items() if k not in ["hash"]}
+    })

@@ -91,6 +91,11 @@ fly secrets set SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_hex
 fly secrets set TELEGRAM_BOT_TOKEN="your-bot-token-here"
 ```
 
+> **Note**: The `APP_URL` is automatically derived from your Fly.io app name (e.g., `https://your-app-name.fly.dev`). You only need to set it manually if using a custom domain:
+> ```bash
+> fly secrets set APP_URL="https://your-custom-domain.com"
+> ```
+
 ### 2.5 Deploy the App
 
 ```bash

@@ -35,11 +35,27 @@ def get_upload_folder() -> str:
     return os.environ.get("UPLOAD_FOLDER", get_data_path("uploads"))
 
 
+def get_app_url() -> str:
+    """Get the application URL, deriving from Fly.io app name if not explicitly set."""
+    # First check for explicit APP_URL
+    app_url = os.environ.get("APP_URL", "")
+    if app_url:
+        return app_url.rstrip("/")
+    
+    # Try to derive from Fly.io app name
+    fly_app_name = os.environ.get("FLY_APP_NAME", "")
+    if fly_app_name:
+        return f"https://{fly_app_name}.fly.dev"
+    
+    return ""
+
+
 class Config:
     """Base configuration."""
 
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
     TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+    APP_URL = get_app_url()  # Base URL for the web app (auto-derived on Fly.io)
 
     SQLALCHEMY_DATABASE_URI = get_database_uri()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
