@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Results - New Year Jeopardy{% endblock %}
+
+{% block content %}
+<h1>🎆🎉 Game Over! 🎉🎆</h1>
+
+{% if players %}
+    <div class="winner-section">
+        <p>🏆 Winner 🏆</p>
+        <div class="winner-name">{{ players[0].name }}</div>
+        <p>{{ players[0].total_score }} points</p>
+    </div>
+{% endif %}
+
+<div class="standings">
+    <h3>Final Standings:</h3>
+    {% for p in players %}
+        <div class="standing-row {% if loop.first %}winner{% endif %}">
+            <span>{{ loop.index }}. {{ p.name }}</span>
+            <span>{{ p.total_score }} pts</span>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
