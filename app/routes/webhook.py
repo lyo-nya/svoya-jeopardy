@@ -72,8 +72,9 @@ def handle_message(message: dict):
                 db.session.commit()
                 current_app.logger.info(f"Created game for chat {chat_id}")
             
-            # Send WebApp button
-            success = send_webapp_button(chat_id, bot_token, app_url)
+            # Send WebApp button (is_group based on chat_type)
+            is_group = chat_type in ("group", "supergroup")
+            success = send_webapp_button(chat_id, bot_token, app_url, is_group=is_group)
             current_app.logger.info(f"send_webapp_button result: {success}")
         else:
             current_app.logger.error(
@@ -97,8 +98,8 @@ def handle_message(message: dict):
                 db.session.add(game)
                 db.session.commit()
             
-            # Send welcome message with WebApp button
-            send_webapp_button(chat_id, bot_token, app_url)
+            # Send welcome message with WebApp button (private chat)
+            send_webapp_button(chat_id, bot_token, app_url, is_group=False)
             current_app.logger.info(f"Sent WebApp button to private chat {chat_id}")
         else:
             current_app.logger.error(
@@ -178,7 +179,7 @@ def handle_my_chat_member(update: dict):
         )
         
         if bot_token and app_url:
-            success = send_webapp_button(chat_id, bot_token, app_url)
+            success = send_webapp_button(chat_id, bot_token, app_url, is_group=True)
             if success:
                 current_app.logger.info(f"Sent WebApp button to group {chat_id}")
             else:
