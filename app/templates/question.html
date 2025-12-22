@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}{{ category.name }} - {{ question.points }} pts{% endblock %}
+{% block title %}{{ category.name }} - {{ question.points }} очков{% endblock %}
 
 {% block content %}
-<a href="{{ url_for('game.game_board') }}" class="back-link">← Back to Board</a>
+<a href="{{ url_for('game.game_board') }}" class="back-link">← К игровому полю</a>
 
 <div class="question-header">
     <span class="question-category">{{ category.name }}</span>
-    <span class="question-points">{{ question.points }} points</span>
+    <span class="question-points">{{ question.points }} очков</span>
 </div>
 
 <div class="question-display">
@@ -15,30 +15,30 @@
     
     {% if question.image_path %}
         <img src="{{ url_for('setup.uploaded_file', filename=question.image_path) }}" 
-             alt="Question image" class="question-image">
+             alt="Картинка к вопросу" class="question-image">
     {% endif %}
     
     {% set revealed = request.args.get('revealed') == '1' %}
     
     {% if revealed %}
         <div class="answer-section">
-            <div class="answer-label">Answer:</div>
+            <div class="answer-label">Ответ:</div>
             <div class="answer-text">✨ {{ question.answer }} ✨</div>
         </div>
         
         {% if is_host %}
             <div class="award-section">
-                <p>Who got it right?</p>
+                <p>Кто ответил правильно?</p>
                 <div class="player-buttons">
                     {% for p in eligible_players %}
                         <form method="POST" action="{{ url_for('game.award_points', question_id=question.id, player_id=p.id) }}" style="display: inline;">
-                            <button type="submit" class="btn">{{ p.name }}</button>
+                            <button type="submit" class="btn btn-player">{{ p.name }}</button>
                         </form>
                     {% endfor %}
                 </div>
                 <div class="skip-section">
                     <form method="POST" action="{{ url_for('game.skip_question', question_id=question.id) }}">
-                        <button type="submit" class="btn btn-secondary">Nobody got it</button>
+                        <button type="submit" class="btn btn-secondary">Никто не ответил</button>
                     </form>
                 </div>
             </div>
@@ -46,10 +46,10 @@
     {% else %}
         {% if is_host %}
             <form method="POST" action="{{ url_for('game.reveal_answer', question_id=question.id) }}">
-                <button type="submit" class="btn btn-primary reveal-btn">Reveal Answer</button>
+                <button type="submit" class="btn btn-primary reveal-btn">👀 Показать ответ</button>
             </form>
         {% else %}
-            <p class="waiting-text">Waiting for host to reveal answer...</p>
+            <p class="waiting-text">Ожидаем, пока хост покажет ответ...</p>
         {% endif %}
     {% endif %}
 </div>

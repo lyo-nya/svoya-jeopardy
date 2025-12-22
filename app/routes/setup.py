@@ -80,7 +80,7 @@ def setup_overview():
     
     # Check if game already started
     if game.status != "setup":
-        flash("Game has already started. You cannot edit questions.", "error")
+        flash("Игра уже началась. Редактирование вопросов недоступно.", "error")
         return redirect(url_for("main.lobby"))
     
     # Get player's categories as dict by position
@@ -100,7 +100,7 @@ def setup_overview():
 def edit_category(pos: int):
     """Display category edit form."""
     if pos < 0 or pos > 3:
-        flash("Invalid category position", "error")
+        flash("Неверная позиция категории", "error")
         return redirect(url_for("setup.setup_overview"))
     
     chat_id = get_chat_id()
@@ -113,7 +113,7 @@ def edit_category(pos: int):
     
     # Check if game already started
     if game.status != "setup":
-        flash("Game has already started. You cannot edit questions.", "error")
+        flash("Игра уже началась. Редактирование вопросов недоступно.", "error")
         return redirect(url_for("main.lobby"))
     
     # Get existing category if any
@@ -131,9 +131,9 @@ def edit_category(pos: int):
 @setup_bp.route("/category/<int:pos>", methods=["POST"])
 @telegram_required
 def save_category(pos: int):
-    """Save category and questions."""
+    """Save category and questions. Supports partial submissions."""
     if pos < 0 or pos > 3:
-        flash("Invalid category position", "error")
+        flash("Неверная позиция категории", "error")
         return redirect(url_for("setup.setup_overview"))
     
     chat_id = get_chat_id()
@@ -146,7 +146,7 @@ def save_category(pos: int):
     
     # Check if game already started
     if game.status != "setup":
-        flash("Game has already started. You cannot edit questions.", "error")
+        flash("Игра уже началась. Редактирование вопросов недоступно.", "error")
         return redirect(url_for("main.lobby"))
     
     try:
@@ -156,42 +156,49 @@ def save_category(pos: int):
         if not category:
             category = Category(player_id=player.id, position=pos, name="")
             db.session.add(category)
+            db.session.flush()  # Get the ID
         
-        # Update category name
+        # Update category name (use default if empty)
         category_name = request.form.get("category_name", "").strip()
+        if category_name:
+            # Validate category name length
+            if len(category_name) > 50:
+                flash("Название категории должно быть не более 50 символов", "error")
+                return redirect(url_for("setup.edit_category", pos=pos))
+            category.name = category_name
+        elif not category.name:
+            # Set default name if none provided and none exists
+            category.name = f"Категория {pos + 1}"
         
-        if not category_name:
-            flash("Category name is required", "error")
-            return redirect(url_for("setup.edit_category", pos=pos))
-        
-        # Validate category name length
-        if len(category_name) > 50:
-            flash("Category name must be 50 characters or less", "error")
-            return redirect(url_for("setup.edit_category", pos=pos))
-        
-        category.name = category_name
         db.session.commit()
         
         # Get existing questions as dict by points
         existing_questions = {q.points: q for q in category.questions}
         
-        # Process each question
+        saved_count = 0
+        # Process each question - allow partial submissions
         for i in range(5):
             points = POINT_VALUES[i]
             question_text = request.form.get(f"question_{i}", "").strip()
             answer_text = request.form.get(f"answer_{i}", "").strip()
             
-            if not question_text or not answer_text:
-                flash(f"Question {i + 1} is incomplete", "error")
-                return redirect(url_for("setup.edit_category", pos=pos))
+            # Skip if both are empty (allow partial submission)
+            if not question_text and not answer_text:
+                continue
+            
+            # If one is filled but not the other, still save but note it's incomplete
+            if question_text and not answer_text:
+                answer_text = "???"  # Placeholder for incomplete answer
+            elif answer_text and not question_text:
+                question_text = "???"  # Placeholder for incomplete question
             
             # Validate lengths
             if len(question_text) > 1000:
-                flash(f"Question {i + 1} is too long (max 1000 characters)", "error")
+                flash(f"Вопрос {i + 1} слишком длинный (макс. 1000 символов)", "error")
                 return redirect(url_for("setup.edit_category", pos=pos))
             
             if len(answer_text) > 500:
-                flash(f"Answer {i + 1} is too long (max 500 characters)", "error")
+                flash(f"Ответ {i + 1} слишком длинный (макс. 500 символов)", "error")
                 return redirect(url_for("setup.edit_category", pos=pos))
             
             # Get or create question
@@ -203,6 +210,7 @@ def save_category(pos: int):
             
             question.text = question_text
             question.answer = answer_text
+            saved_count += 1
             
             # Handle image upload
             image_file = request.files.get(f"image_{i}")
@@ -213,27 +221,33 @@ def save_category(pos: int):
                 image_file.seek(0)  # Reset position
                 
                 if file_size > MAX_IMAGE_SIZE:
-                    flash(f"Image for question {i + 1} is too large (max 5MB)", "error")
+                    flash(f"Картинка для вопроса {i + 1} слишком большая (макс. 5МБ)", "error")
                     return redirect(url_for("setup.edit_category", pos=pos))
                 
                 image_path = save_image(image_file, player.id, pos * 5 + i)
                 if image_path:
                     question.image_path = image_path
                 else:
-                    flash(f"Failed to save image for question {i + 1}. Invalid file type.", "error")
+                    flash(f"Не удалось сохранить картинку для вопроса {i + 1}. Неверный формат.", "error")
         
         db.session.commit()
         
-        # Check if all 4 categories are complete
-        category_count = Category.query.filter_by(player_id=player.id).count()
-        if category_count >= 4:
-            player.questions_submitted = True
-            db.session.commit()
+        # Update questions_submitted flag based on having at least 1 question
+        total_questions = Question.query.join(Category).filter(
+            Category.player_id == player.id
+        ).count()
+        player.questions_submitted = total_questions > 0
+        db.session.commit()
         
-        flash(f"Category '{category.name}' saved!", "success")
+        if saved_count > 0:
+            flash(f"Категория «{category.name}» сохранена! ({saved_count} вопр.)", "success")
+        else:
+            flash("Заполните хотя бы один вопрос для сохранения", "error")
+            return redirect(url_for("setup.edit_category", pos=pos))
+            
     except SQLAlchemyError as e:
         db.session.rollback()
         current_app.logger.error(f"Database error saving category: {e}")
-        flash("An error occurred. Please try again.", "error")
+        flash("Произошла ошибка. Попробуйте ещё раз.", "error")
     
     return redirect(url_for("setup.setup_overview"))

@@ -83,30 +83,25 @@ def start_game():
     
     # Only host can start
     if not player.is_host:
-        flash("Only the host can start the game", "error")
+        flash("Только хост может начать игру", "error")
         return redirect(url_for("main.lobby"))
     
     # Check if already started
     if game.status != "setup":
-        flash("Game has already started", "error")
+        flash("Игра уже началась", "error")
         return redirect(url_for("main.lobby"))
     
-    # Check if we have enough players
+    # Check if we have at least 1 player with questions
     players = list(game.players.all())
-    if len(players) < 5:
-        flash(f"Need 5 players to start. Currently have {len(players)}.", "error")
-        return redirect(url_for("main.lobby"))
+    players_with_questions = [p for p in players if p.questions_submitted]
     
-    # Check if all players submitted questions
-    not_ready = [p for p in players if not p.questions_submitted]
-    if not_ready:
-        names = ", ".join(p.name for p in not_ready)
-        flash(f"These players haven't submitted questions: {names}", "error")
+    if len(players_with_questions) < 1:
+        flash("Нужен хотя бы один игрок с вопросами для начала игры", "error")
         return redirect(url_for("main.lobby"))
     
     try:
-        # Create Round records for each player
-        for i, p in enumerate(players):
+        # Create Round records only for players who have submitted questions
+        for i, p in enumerate(players_with_questions):
             round_record = Round(
                 game_id=game.id,
                 player_id=p.id,
@@ -119,11 +114,11 @@ def start_game():
         game.status = "in_progress"
         db.session.commit()
         
-        flash("🎮 Game started! Select whose questions to play first.", "success")
+        flash("🎮 Игра началась! Выберите чьи вопросы играть первыми.", "success")
     except SQLAlchemyError as e:
         db.session.rollback()
         current_app.logger.error(f"Database error starting game: {e}")
-        flash("An error occurred starting the game. Please try again.", "error")
+        flash("Произошла ошибка. Попробуйте ещё раз.", "error")
         return redirect(url_for("main.lobby"))
     
     return redirect(url_for("game.select_round"))
@@ -185,14 +180,14 @@ def set_round(player_id: int):
     
     # Only host can select round
     if not player.is_host:
-        flash("Only the host can select rounds", "error")
+        flash("Только хост может выбирать раунды", "error")
         return redirect(url_for("game.select_round"))
     
     # Find the round for this player
     round_record = Round.query.filter_by(game_id=game.id, player_id=player_id, status="pending").first()
     
     if not round_record:
-        flash("Invalid round selection", "error")
+        flash("Неверный выбор раунда", "error")
         return redirect(url_for("game.select_round"))
     
     # Set as current round
@@ -211,7 +206,7 @@ def set_round(player_id: int):
     
     db.session.commit()
     
-    flash(f"Playing {round_record.player.name}'s questions!", "success")
+    flash(f"Играем вопросы {round_record.player.name}!", "success")
     return redirect(url_for("game.game_board"))
 
 
@@ -233,12 +228,12 @@ def show_question(question_id: int):
     # Verify question belongs to current round
     current_round = Round.query.get(game.current_round_id) if game.current_round_id else None
     if not current_round or category.player_id != current_round.player_id:
-        flash("Invalid question for current round", "error")
+        flash("Неверный вопрос для текущего раунда", "error")
         return redirect(url_for("game.game_board"))
     
     # Check if already answered
     if question.is_answered:
-        flash("This question has already been answered", "error")
+        flash("Этот вопрос уже отвечен", "error")
         return redirect(url_for("game.game_board"))
     
     # Get players who can receive points (not the question author)
@@ -278,30 +273,30 @@ def award_points(question_id: int, player_id: int):
     
     # Only host can award points
     if not player.is_host:
-        flash("Only the host can award points", "error")
+        flash("Только хост может начислять очки", "error")
         return redirect(url_for("game.game_board"))
     
     question = Question.query.get_or_404(question_id)
     
     # Check if already answered
     if question.is_answered:
-        flash("This question has already been answered", "error")
+        flash("Этот вопрос уже отвечен", "error")
         return redirect(url_for("game.game_board"))
     
     # Verify the player exists and is in this game
     target_player = Player.query.filter_by(id=player_id, game_id=game.id).first()
     if not target_player:
-        flash("Invalid player", "error")
+        flash("Неверный игрок", "error")
         return redirect(url_for("game.game_board"))
     
     # Verify player is not sitting out
     current_round = Round.query.get(game.current_round_id) if game.current_round_id else None
     if not current_round:
-        flash("No active round", "error")
+        flash("Нет активного раунда", "error")
         return redirect(url_for("game.select_round"))
     
     if target_player.id == current_round.player_id:
-        flash("Cannot award points to the player sitting out", "error")
+        flash("Нельзя начислить очки игроку, который пропускает раунд", "error")
         return redirect(url_for("game.show_question", question_id=question_id, revealed="1"))
     
     try:
@@ -318,11 +313,11 @@ def award_points(question_id: int, player_id: int):
             round_score.score += question.points
         
         db.session.commit()
-        flash(f"Awarded {question.points} points to {target_player.name}!", "success")
+        flash(f"+{question.points} очков игроку {target_player.name}!", "success")
     except SQLAlchemyError as e:
         db.session.rollback()
         current_app.logger.error(f"Database error awarding points: {e}")
-        flash("An error occurred. Please try again.", "error")
+        flash("Произошла ошибка. Попробуйте ещё раз.", "error")
     
     return redirect(url_for("game.game_board"))
 
@@ -341,25 +336,25 @@ def skip_question(question_id: int):
     
     # Only host can skip
     if not player.is_host:
-        flash("Only the host can skip questions", "error")
+        flash("Только хост может пропускать вопросы", "error")
         return redirect(url_for("game.game_board"))
     
     question = Question.query.get_or_404(question_id)
     
     # Check if already answered
     if question.is_answered:
-        flash("This question has already been answered", "error")
+        flash("Этот вопрос уже отвечен", "error")
         return redirect(url_for("game.game_board"))
     
     try:
         question.is_answered = True
         question.answered_by_player_id = None
         db.session.commit()
-        flash("Question skipped - no points awarded", "success")
+        flash("Вопрос пропущен — никто не получил очки", "success")
     except SQLAlchemyError as e:
         db.session.rollback()
         current_app.logger.error(f"Database error skipping question: {e}")
-        flash("An error occurred. Please try again.", "error")
+        flash("Произошла ошибка. Попробуйте ещё раз.", "error")
     
     return redirect(url_for("game.game_board"))
 
@@ -378,13 +373,13 @@ def next_round():
     
     # Only host can advance
     if not player.is_host:
-        flash("Only the host can advance rounds", "error")
+        flash("Только хост может переходить к следующему раунду", "error")
         return redirect(url_for("game.game_board"))
     
     current_round = Round.query.get(game.current_round_id) if game.current_round_id else None
     
     if not current_round:
-        flash("No active round to complete", "error")
+        flash("Нет активного раунда для завершения", "error")
         return redirect(url_for("game.select_round"))
     
     try:
@@ -402,13 +397,13 @@ def next_round():
         if pending_rounds == 0:
             game.status = "completed"
             db.session.commit()
-            flash("🎉 All rounds complete! Game over!", "success")
+            flash("🎉 Все раунды сыграны! Игра окончена!", "success")
             return redirect(url_for("main.results"))
         
-        flash(f"Round {current_round.round_number} complete!", "success")
+        flash(f"Раунд {current_round.round_number} завершён!", "success")
     except SQLAlchemyError as e:
         db.session.rollback()
         current_app.logger.error(f"Database error completing round: {e}")
-        flash("An error occurred. Please try again.", "error")
+        flash("Произошла ошибка. Попробуйте ещё раз.", "error")
     
     return redirect(url_for("game.select_round"))

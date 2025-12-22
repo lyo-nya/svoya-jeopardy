@@ -67,12 +67,12 @@ def lobby():
     # Get all players in this game
     players = list(game.players.order_by("id").all())
     
-    # Count ready players
+    # Count ready players (those who have submitted at least 1 question)
     ready_count = sum(1 for p in players if p.questions_submitted)
     total_count = len(players)
     
-    # Can start if we have 5 players and all have submitted
-    can_start = total_count >= 5 and ready_count >= 5 and game.status == "setup"
+    # Can start if we have at least 1 player with questions
+    can_start = ready_count >= 1 and game.status == "setup"
     
     return render_template(
         "lobby.html",

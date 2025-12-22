@@ -1,23 +1,25 @@
 {% extends "base.html" %}
 
-{% block title %}Submit Questions - New Year Jeopardy{% endblock %}
+{% block title %}Создание вопросов - Своя Jeopardy!{% endblock %}
 
 {% block content %}
-<h1>🎄 New Year Jeopardy 🎄</h1>
-<h2>Submit Your Questions</h2>
+<h1>🎄 Своя Jeopardy! 🎄</h1>
+<h2>Создайте свои вопросы</h2>
 
-<p>Hello, <strong>{{ player.name }}</strong>! Create 4 categories with 5 questions each.</p>
+<p>Привет, <strong>{{ player.name }}</strong>! Создай до 4 категорий с вопросами.</p>
+<p class="hint-text">💡 Можно создать любое количество вопросов — даже один!</p>
 
 <div class="categories-list">
     {% for pos in range(4) %}
         {% set category = categories.get(pos) %}
-        <div class="category-card">
+        <div class="category-card {% if category %}has-content{% endif %}">
             <div class="category-header">
-                <span class="category-position">Category {{ pos + 1 }}</span>
+                <span class="category-position">Категория {{ pos + 1 }}</span>
                 {% if category %}
-                    <span class="status status-ready">✓ Ready</span>
+                    {% set q_count = category.questions | list | length %}
+                    <span class="status status-ready">✓ {{ q_count }} вопр.</span>
                 {% else %}
-                    <span class="status status-empty">○ Empty</span>
+                    <span class="status status-empty">○ Пусто</span>
                 {% endif %}
             </div>
             
@@ -26,27 +28,31 @@
                 <div class="questions-preview">
                     {% for question in category.questions %}
                         <div class="question-preview">
-                            {{ question.points }} pts: {{ question.text[:30] }}{% if question.text|length > 30 %}...{% endif %}
+                            {{ question.points }} очков: {{ question.text[:30] }}{% if question.text|length > 30 %}...{% endif %}
                         </div>
                     {% endfor %}
                 </div>
             {% else %}
-                <div class="category-name empty">Not created yet</div>
+                <div class="category-name empty">Ещё не создана</div>
             {% endif %}
             
             <a href="{{ url_for('setup.edit_category', pos=pos) }}" class="btn">
-                {% if category %}Edit Category{% else %}Add Category{% endif %}
+                {% if category %}✏️ Редактировать{% else %}➕ Добавить{% endif %}
             </a>
         </div>
     {% endfor %}
 </div>
 
 <div class="progress">
-    <p>Progress: {{ categories|length }}/4 categories done</p>
-    {% if categories|length == 4 %}
-        <p class="ready-message">✨ You're all set! Wait for other players in the lobby.</p>
+    {% set total_questions = namespace(count=0) %}
+    {% for cat in categories.values() %}
+        {% set total_questions.count = total_questions.count + (cat.questions | list | length) %}
+    {% endfor %}
+    <p>Всего вопросов: <strong>{{ total_questions.count }}</strong></p>
+    {% if total_questions.count > 0 %}
+        <p class="ready-message">✨ Отлично! Ты можешь начать игру или добавить ещё вопросов.</p>
     {% endif %}
 </div>
 
-<a href="{{ url_for('main.lobby') }}" class="btn btn-primary">Go to Lobby</a>
+<a href="{{ url_for('main.lobby') }}" class="btn btn-primary">🚪 Перейти в лобби</a>
 {% endblock %}
