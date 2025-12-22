@@ -77,7 +77,7 @@ body::after {
 
 /* Snow/Stars background effect */
 .container {
-    max-width: 640px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
     position: relative;
@@ -93,6 +93,12 @@ body::after {
         transparent;
     background-size: 320px 100px;
     animation: twinkle 4s ease-in-out infinite alternate;
+}
+
+/* Game page optimized for large 1280x720 display */
+.game-page .container {
+    max-width: 1260px;
+    padding: 10px 20px;
 }
 
 @keyframes twinkle {
@@ -679,12 +685,12 @@ hr {
     letter-spacing: 0.05em;
 }
 
-/* ===== GAME BOARD - Classic Своя Игра Style ===== */
+/* ===== GAME BOARD - Classic Своя Игра Style (Row-based layout) ===== */
 .game-board {
-    display: grid;
-    grid-template-columns: repeat(var(--category-count, 4), 1fr);
-    gap: 4px;
-    margin: 24px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin: 12px 0;
     background: #000;
     padding: 4px;
     border-radius: 4px;
@@ -692,25 +698,33 @@ hr {
     box-shadow: var(--glow-gold), inset 0 0 20px rgba(0,0,0,0.5);
 }
 
+.category-row {
+    display: grid;
+    grid-template-columns: minmax(180px, 2fr) repeat(5, 1fr);
+    gap: 3px;
+}
+
 .category-header-cell {
     background: linear-gradient(180deg, #1a3a6a 0%, #0d1e3a 100%);
     color: var(--text-primary);
-    padding: 12px 6px;
-    text-align: center;
+    padding: 14px 10px;
+    text-align: left;
     font-weight: 700;
-    font-size: 0.75rem;
+    font-size: 0.95rem;
     text-transform: uppercase;
     letter-spacing: 0.02em;
     border: 1px solid var(--border-blue);
     text-shadow: var(--glow-text);
     font-family: 'PT Serif', serif;
+    display: flex;
+    align-items: center;
 }
 
 .question-cell {
     background: linear-gradient(180deg, #0d1e3a 0%, #060818 100%);
-    padding: 18px 8px;
+    padding: 14px 8px;
     text-align: center;
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--gold);
     cursor: pointer;
@@ -738,76 +752,77 @@ hr {
     text-shadow: none;
 }
 
-/* Scoreboard - Retro LED style */
+/* Scoreboard - Compact horizontal layout for game screen */
 .scoreboard {
     background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-deep-blue) 100%);
-    padding: 18px;
+    padding: 10px 16px;
     border-radius: 4px;
-    margin: 24px 0;
+    margin: 10px 0;
     border: 2px solid var(--border-blue);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 16px;
 }
 
 .scoreboard-header {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 2px solid var(--gold-dim);
-    margin-bottom: 12px;
-    font-weight: 700;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--gold);
+    display: none;
 }
 
 .score-row {
     display: flex;
     align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border-blue);
-}
-
-.score-row:last-child {
-    border-bottom: none;
+    padding: 4px 10px;
+    background: rgba(0,0,0,0.25);
+    border-radius: 4px;
+    gap: 8px;
+    font-size: 0.9rem;
 }
 
 .score-row .player-name {
-    flex: 1;
+    font-weight: 600;
+    font-size: 0.9rem;
 }
 
 .score-row .round-score {
-    width: 70px;
-    text-align: right;
     color: #7dcea0;
     font-weight: 700;
     font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+}
+
+.score-row .round-score::before {
+    content: "+";
 }
 
 .score-row .total-score {
-    width: 70px;
-    text-align: right;
     font-weight: 700;
     color: var(--gold);
     font-family: 'Courier New', monospace;
     text-shadow: var(--glow-gold);
+    font-size: 0.9rem;
 }
 
 .score-row.sitting-out {
     color: var(--text-muted);
     font-style: italic;
+    opacity: 0.7;
+}
+
+.score-row.sitting-out .round-score::before {
+    content: "";
 }
 
 .sitting-label {
-    font-size: 0.75rem;
-    margin-left: 8px;
+    font-size: 0.7rem;
     color: var(--text-muted);
     text-transform: uppercase;
 }
 
 .round-complete {
     text-align: center;
-    margin: 24px 0;
-    padding: 24px;
+    margin: 12px 0;
+    padding: 16px;
     background: linear-gradient(180deg, #1a3d2e 0%, #0d261c 100%);
     border-radius: 4px;
     border: 2px solid var(--accent-green);
@@ -816,15 +831,15 @@ hr {
 .round-complete p {
     color: #7dcea0;
     font-weight: 700;
-    font-size: 1.1rem;
-    margin-bottom: 16px;
+    font-size: 1rem;
+    margin-bottom: 12px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
 .game-actions {
     text-align: center;
-    margin: 24px 0;
+    margin: 10px 0;
 }
 
 /* Question display - TV Game Show style */
@@ -1622,8 +1637,48 @@ hr {
     font-weight: 700;
 }
 
+/* Large screen (1280x720) optimization for game page */
+@media (min-width: 1024px) {
+    .game-page h1 {
+        font-size: 1.4rem;
+        margin-bottom: 6px;
+        padding-bottom: 8px;
+    }
+    
+    .game-page .game-board {
+        margin: 8px 0;
+    }
+    
+    .game-page .category-row {
+        grid-template-columns: minmax(200px, 1.5fr) repeat(5, 1fr);
+    }
+    
+    .game-page .category-header-cell {
+        font-size: 1rem;
+        padding: 16px 14px;
+    }
+    
+    .game-page .question-cell {
+        font-size: 1.8rem;
+        padding: 18px 10px;
+    }
+    
+    .game-page .scoreboard {
+        margin: 8px 0;
+    }
+    
+    .game-page .game-actions {
+        margin: 12px 0;
+    }
+    
+    .game-page .round-complete {
+        margin: 12px 0;
+        padding: 16px;
+    }
+}
+
 /* Mobile adjustments */
-@media (max-width: 400px) {
+@media (max-width: 600px) {
     .container {
         padding: 16px;
     }
@@ -1641,18 +1696,31 @@ hr {
     }
     
     .game-board {
-        gap: 3px;
+        gap: 2px;
         padding: 3px;
+    }
+    
+    .category-row {
+        grid-template-columns: minmax(80px, 1fr) repeat(5, 1fr);
     }
     
     .category-header-cell {
         padding: 8px 4px;
-        font-size: 0.65rem;
+        font-size: 0.6rem;
     }
     
     .question-cell {
-        padding: 14px 6px;
-        font-size: 1.1rem;
+        padding: 10px 4px;
+        font-size: 1rem;
+    }
+    
+    .scoreboard {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .score-row {
+        justify-content: space-between;
     }
     
     .btn {

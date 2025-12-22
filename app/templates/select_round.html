@@ -39,6 +39,7 @@
     </div>
 {% endif %}
 
+{% if completed_rounds %}
 <div class="current-standings">
     <h3>Текущий счёт:</h3>
     {% for p in players_by_score %}
@@ -48,4 +49,5 @@
         </div>
     {% endfor %}
 </div>
+{% endif %}
 {% endblock %}

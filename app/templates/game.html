@@ -2,32 +2,32 @@
 
 {% block title %}Игровое поле - Своя Jeopardy!{% endblock %}
 
+{% block body_class %}game-page{% endblock %}
+
 {% block content %}
 <h1>Раунд {{ current_round.round_number }}: Вопросы {{ sitting_out_player.name }}</h1>
 
-<div class="game-board" style="--category-count: {{ categories | length }}">
-    <!-- Category headers -->
-    {% for category in categories %}
-        <div class="category-header-cell">{{ category.name }}</div>
-    {% endfor %}
-    
-    <!-- Question grid (5 rows of point values) -->
+<div class="game-board">
     {% set point_values = [100, 200, 300, 400, 500] %}
-    {% for points in point_values %}
-        {% for category in categories %}
-            {% set question = category.questions | selectattr("points", "equalto", points) | first %}
-            {% if question %}
-                {% if question.is_answered %}
-                    <div class="question-cell answered">—</div>
+    <!-- Each category is a row: category name + 5 question cells -->
+    {% for category in categories %}
+        <div class="category-row">
+            <div class="category-header-cell">{{ category.name }}</div>
+            {% for points in point_values %}
+                {% set question = category.questions | selectattr("points", "equalto", points) | first %}
+                {% if question %}
+                    {% if question.is_answered %}
+                        <div class="question-cell answered">—</div>
+                    {% else %}
+                        <a href="{{ url_for('game.show_question', question_id=question.id) }}" class="question-cell">
+                            {{ points }}
+                        </a>
+                    {% endif %}
                 {% else %}
-                    <a href="{{ url_for('game.show_question', question_id=question.id) }}" class="question-cell">
-                        {{ points }}
-                    </a>
+                    <div class="question-cell answered">—</div>
                 {% endif %}
-            {% else %}
-                <div class="question-cell answered">—</div>
-            {% endif %}
-        {% endfor %}
+            {% endfor %}
+        </div>
     {% endfor %}
 </div>
 
