@@ -6,6 +6,32 @@ from pathlib import Path
 # Base directory for the project
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Railway volume mount path (if using persistent storage)
+RAILWAY_VOLUME_PATH = os.environ.get("RAILWAY_VOLUME_MOUNT_PATH", "")
+
+
+def get_data_path(subdir: str) -> str:
+    """Get path for data storage, preferring Railway volume if available."""
+    if RAILWAY_VOLUME_PATH:
+        path = Path(RAILWAY_VOLUME_PATH) / subdir
+    else:
+        path = BASE_DIR / subdir
+    path.mkdir(parents=True, exist_ok=True)
+    return str(path)
+
+
+def get_database_uri() -> str:
+    """Get database URI, preferring Railway volume if available."""
+    if os.environ.get("DATABASE_URL"):
+        return os.environ["DATABASE_URL"]
+    db_path = get_data_path("data") + "/jeopardy.db"
+    return f"sqlite:///{db_path}"
+
+
+def get_upload_folder() -> str:
+    """Get upload folder path."""
+    return os.environ.get("UPLOAD_FOLDER", get_data_path("uploads"))
+
 
 class Config:
     """Base configuration."""
@@ -13,14 +39,10 @@ class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
     TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 
-    # SQLite database in instance folder (or Railway volume)
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "DATABASE_URL", f"sqlite:///{BASE_DIR / 'instance' / 'jeopardy.db'}"
-    )
+    SQLALCHEMY_DATABASE_URI = get_database_uri()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Upload settings
-    UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER", str(BASE_DIR / "uploads"))
+    UPLOAD_FOLDER = get_upload_folder()
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MB max upload
     ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 
