@@ -3,12 +3,16 @@
 import hmac
 import hashlib
 import json
+import time
 import requests
 from urllib.parse import parse_qs, unquote
 from functools import wraps
-from flask import request, current_app, g
+from flask import request, current_app, g, session
 from app import db
 from app.models import Game, Player
+
+# Session timeout in seconds (1 hour)
+SESSION_TIMEOUT = 3600
 
 
 def send_webapp_button(chat_id: int, bot_token: str, app_url: str) -> bool:
@@ -178,24 +182,52 @@ def validate_telegram_data(init_data: str, bot_token: str) -> dict | None:
 
 
 def get_telegram_data() -> dict | None:
-    """Get and validate Telegram data from the current request."""
+    """
+    Get and validate Telegram data from the current request.
+    
+    First checks for init_data in the request (form or query params).
+    If found and valid, stores in session for subsequent requests.
+    If not found, falls back to session-stored data.
+    """
     # Check form data first, then query params
     init_data = request.form.get("init_data") or request.args.get("init_data")
-    
-    if not init_data:
-        current_app.logger.warning(
-            f"No init_data found in request. "
-            f"Form keys: {list(request.form.keys())}, "
-            f"Args keys: {list(request.args.keys())}"
-        )
-        return None
     
     bot_token = current_app.config.get("TELEGRAM_BOT_TOKEN", "")
     if not bot_token:
         current_app.logger.error("TELEGRAM_BOT_TOKEN not configured!")
         return None
-        
-    return validate_telegram_data(init_data, bot_token)
+    
+    if init_data:
+        # Validate fresh init_data from request
+        telegram_data = validate_telegram_data(init_data, bot_token)
+        if telegram_data:
+            # Store validated data in session for subsequent requests
+            session["telegram_data"] = telegram_data
+            session["telegram_auth_time"] = time.time()
+            current_app.logger.debug("Stored telegram data in session")
+            return telegram_data
+        else:
+            current_app.logger.warning("init_data validation failed")
+            return None
+    
+    # Fall back to session-stored data
+    if "telegram_data" in session:
+        # Check if session hasn't expired
+        auth_time = session.get("telegram_auth_time", 0)
+        if time.time() - auth_time < SESSION_TIMEOUT:
+            current_app.logger.debug("Using telegram data from session")
+            return session["telegram_data"]
+        else:
+            current_app.logger.info("Session expired, clearing telegram data")
+            session.pop("telegram_data", None)
+            session.pop("telegram_auth_time", None)
+    
+    current_app.logger.warning(
+        f"No init_data found in request and no valid session. "
+        f"Form keys: {list(request.form.keys())}, "
+        f"Args keys: {list(request.args.keys())}"
+    )
+    return None
 
 
 def get_chat_id() -> int | None:
@@ -315,13 +347,12 @@ def telegram_required(f):
                 f"Authorization failed for {request.path}. "
                 f"Method: {request.method}, "
                 f"Has init_data in form: {'init_data' in request.form}, "
-                f"Has init_data in args: {'init_data' in request.args}"
+                f"Has init_data in args: {'init_data' in request.args}, "
+                f"Has session: {'telegram_data' in session}"
             )
-            return (
-                "Authorization Error: Unable to verify Telegram authentication. "
-                "Please try closing and reopening the app from Telegram.",
-                401
-            )
+            # Redirect to entry page to re-authenticate
+            from flask import redirect, url_for
+            return redirect(url_for("main.entry"))
         
         # Store in Flask g object for access in route handlers
         g.telegram_data = telegram_data

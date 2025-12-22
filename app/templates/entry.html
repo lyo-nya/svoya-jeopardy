@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>New Year Jeopardy - Loading</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: var(--tg-theme-button-color, #3390ec);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-text {
+            font-size: 1.2em;
+            color: var(--tg-theme-text-color, #ffffff);
+        }
+        .error-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+            padding: 20px;
+        }
+        .error-text {
+            color: #ff6b6b;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+        .error-details {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9em;
+            max-width: 100%;
+            overflow-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loading" class="loading-container">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading game...</div>
+        </div>
+        
+        <div id="error" class="error-container">
+            <div class="error-text">
+                ⚠️ Unable to authenticate with Telegram
+            </div>
+            <div class="error-details" id="error-details">
+                Please open this app from Telegram.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // Initialize Telegram WebApp
+            const tg = window.Telegram && window.Telegram.WebApp;
+            
+            if (!tg) {
+                showError("Telegram WebApp SDK not available. Please open this app from Telegram.");
+                return;
+            }
+            
+            // Signal to Telegram that we're ready
+            tg.ready();
+            tg.expand();
+            
+            // Get init data from the SDK
+            const initData = tg.initData;
+            
+            console.log("Telegram WebApp initialized");
+            console.log("initData present:", !!initData);
+            console.log("initData length:", initData ? initData.length : 0);
+            
+            if (!initData) {
+                showError(
+                    "No authentication data received from Telegram. " +
+                    "This app must be opened from a Telegram chat via the WebApp button.\n\n" +
+                    "Debug info:\n" +
+                    "- Platform: " + (tg.platform || "unknown") + "\n" +
+                    "- Version: " + (tg.version || "unknown")
+                );
+                return;
+            }
+            
+            // Redirect to the authenticated app route with init_data
+            const appUrl = "{{ url_for('main.index') }}";
+            const separator = appUrl.includes("?") ? "&" : "?";
+            const redirectUrl = appUrl + separator + "init_data=" + encodeURIComponent(initData);
+            
+            console.log("Redirecting to:", redirectUrl.substring(0, 100) + "...");
+            
+            // Small delay to ensure Telegram WebApp is fully ready
+            setTimeout(function() {
+                window.location.href = redirectUrl;
+            }, 100);
+        })();
+        
+        function showError(message) {
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("error").style.display = "flex";
+            document.getElementById("error-details").textContent = message;
+        }
+    </script>
+</body>
+</html>
