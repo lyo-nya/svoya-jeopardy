@@ -163,6 +163,17 @@ p {
     background: linear-gradient(135deg, #3d7ac0, #2d5a8c);
 }
 
+.btn-skip {
+    background: linear-gradient(135deg, #4a4a5a, #3a3a4a);
+    border: 1px solid #5a5a6a;
+    color: var(--text-secondary);
+}
+
+.btn-skip:hover {
+    background: linear-gradient(135deg, #5a5a6a, #4a4a5a);
+    border-color: #6a6a7a;
+}
+
 .btn-save {
     width: 100%;
     padding: 16px;
@@ -373,6 +384,41 @@ input[type="file"] {
     font-size: 0.9rem;
 }
 
+/* Custom file upload button */
+.file-upload-btn {
+    display: inline-block;
+    cursor: pointer;
+}
+
+.file-upload-btn input[type="file"] {
+    display: none;
+}
+
+.file-upload-btn .btn {
+    pointer-events: none;
+}
+
+/* Remove image checkbox */
+.remove-image-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--error);
+}
+
+.remove-image-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--error);
+}
+
+.remove-image-label span {
+    user-select: none;
+}
+
 hr {
     border: none;
     border-top: 1px solid var(--border-color);
@@ -448,6 +494,10 @@ hr {
     margin: 0;
     font-size: 0.85rem;
     color: var(--success);
+}
+
+.current-image + .file-upload-btn {
+    margin-top: 8px;
 }
 
 /* Progress */
@@ -557,7 +607,7 @@ hr {
 /* Game board */
 .game-board {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(var(--category-count, 4), 1fr);
     gap: 8px;
     margin: 24px 0;
 }

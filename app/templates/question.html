@@ -36,11 +36,6 @@
                         </form>
                     {% endfor %}
                 </div>
-                <div class="skip-section">
-                    <form method="POST" action="{{ url_for('game.skip_question', question_id=question.id) }}">
-                        <button type="submit" class="btn btn-secondary">Никто не ответил</button>
-                    </form>
-                </div>
             </div>
         {% endif %}
     {% else %}

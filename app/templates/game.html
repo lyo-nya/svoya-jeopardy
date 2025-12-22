@@ -5,7 +5,7 @@
 {% block content %}
 <h1>🎄 Раунд {{ current_round.round_number }}: Вопросы {{ sitting_out_player.name }} 🎄</h1>
 
-<div class="game-board">
+<div class="game-board" style="--category-count: {{ categories | length }}">
     <!-- Category headers -->
     {% for category in categories %}
         <div class="category-header-cell">{{ category.name }}</div>

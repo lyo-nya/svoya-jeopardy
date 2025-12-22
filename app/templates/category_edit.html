@@ -44,14 +44,20 @@
             </div>
             
             <div class="form-group">
-                <label for="image_{{ i }}">Картинка (необязательно)</label>
+                <label>Картинка (необязательно)</label>
                 {% if question and question.image_path %}
                     <div class="current-image">
                         <img src="{{ url_for('setup.uploaded_file', filename=question.image_path) }}" alt="Текущая картинка">
-                        <p>📎 Картинка прикреплена</p>
+                        <label class="remove-image-label">
+                            <input type="checkbox" name="remove_image_{{ i }}" value="1">
+                            <span>Удалить картинку</span>
+                        </label>
                     </div>
                 {% endif %}
-                <input type="file" id="image_{{ i }}" name="image_{{ i }}" accept="image/*">
+                <label class="file-upload-btn">
+                    <input type="file" id="image_{{ i }}" name="image_{{ i }}" accept="image/*">
+                    <span class="btn btn-small btn-secondary">📎 {% if question and question.image_path %}Заменить{% else %}Добавить картинку{% endif %}</span>
+                </label>
             </div>
         </div>
         

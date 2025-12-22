@@ -10,6 +10,10 @@
     <h3>Игроки:</h3>
     
     {% for p in players %}
+        {% set q_count = namespace(value=0) %}
+        {% for cat in p.categories %}
+            {% set q_count.value = q_count.value + (cat.questions | list | length) %}
+        {% endfor %}
         <div class="player-item">
             <span class="player-name">
                 👤 {{ p.name }}
@@ -17,9 +21,9 @@
             </span>
             <span class="status {% if p.questions_submitted %}status-ready{% else %}status-empty{% endif %}">
                 {% if p.questions_submitted %}
-                    ✓ Вопросы готовы
+                    ✓ {{ q_count.value }}/20 вопросов
                 {% else %}
-                    ○ Готовит вопросы...
+                    ○ {{ q_count.value }}/20 вопросов
                 {% endif %}
             </span>
         </div>
