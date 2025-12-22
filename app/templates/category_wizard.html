@@ -99,6 +99,14 @@
                 {% endif %}
             </div>
         </div>
+        
+        {% if existing_question %}
+        <div class="delete-question-section">
+            <form method="POST" action="{{ url_for('setup.delete_question', pos=pos, step=step) }}" onsubmit="return confirm('Удалить этот вопрос за {{ points }} очков?');">
+                <button type="submit" class="btn btn-delete btn-small">Удалить вопрос</button>
+            </form>
+        </div>
+        {% endif %}
     {% endif %}
 </form>
 {% endblock %}
