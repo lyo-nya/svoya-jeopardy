@@ -12,6 +12,25 @@ from app.services import (
 
 
 @main_bp.route("/")
+def entry():
+    """
+    Unauthenticated entry point for Telegram Mini App.
+    
+    This page loads without authentication so the Telegram SDK JavaScript
+    can initialize and provide the initData. The JavaScript then redirects
+    to the authenticated /app route with the initData as a query parameter.
+    """
+    # Check if init_data is already provided (e.g., from a redirect)
+    init_data = request.args.get("init_data")
+    if init_data:
+        # If we already have init_data, redirect to the authenticated route
+        return redirect(url_for("main.index", init_data=init_data))
+    
+    # Otherwise, render the entry page that will get init_data from Telegram SDK
+    return render_template("entry.html")
+
+
+@main_bp.route("/app")
 @telegram_required
 def index():
     """Entry point - redirect based on game state."""
