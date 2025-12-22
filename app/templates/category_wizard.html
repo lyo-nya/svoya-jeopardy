@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{% if category %}{{ category.name }}{% else %}Новая категория{% endif %} - Своя Игра{% endblock %}
+{% block title %}{% if category %}{{ category.name }}{% else %}Новая категория{% endif %} - Своя Jeopardy!{% endblock %}
 
 {% block content %}
 <a href="{{ url_for('setup.setup_overview') }}" class="back-link">← Назад</a>
