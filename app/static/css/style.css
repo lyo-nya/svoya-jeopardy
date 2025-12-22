@@ -831,15 +831,15 @@ hr {
     text-shadow: none;
 }
 
-/* Scoreboard - Grid layout for game screen with 5 players per row */
+/* Scoreboard - Compact single-row layout for game screen */
 .scoreboard {
     background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-deep-blue) 100%);
-    padding: 8px 12px;
-    border-radius: 4px;
-    margin: 8px 0;
-    border: 2px solid var(--border-blue);
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    padding: 4px 8px;
+    border-radius: 3px;
+    margin: 4px 0;
+    border: 1px solid var(--border-blue);
+    display: flex;
+    flex-wrap: nowrap;
     gap: 0;
 }
 
@@ -850,42 +850,35 @@ hr {
 .score-row {
     display: flex;
     align-items: center;
-    padding: 6px 10px;
+    padding: 3px 8px;
     background: rgba(0,0,0,0.25);
     gap: 4px;
-    font-size: 0.85rem;
-    border-right: 2px solid var(--border-gold);
-    border-bottom: 2px solid var(--border-gold);
+    font-size: 0.7rem;
+    border-right: 1px solid var(--border-gold);
     justify-content: center;
-    flex-direction: column;
-    text-align: center;
+    flex: 1;
+    min-width: 0;
 }
 
-/* Remove right border on last column (5th item in each row) */
-.score-row:nth-child(5n) {
+/* Remove right border on last item */
+.score-row:last-child {
     border-right: none;
-}
-
-/* Remove bottom border on last row */
-.score-row:nth-last-child(-n+5) {
-    border-bottom: none;
-}
-
-/* When there's only one row (up to 5 players + 1 sitting out = 6), remove bottom border from all */
-.scoreboard:has(.score-row:nth-child(6):last-child) .score-row {
-    border-bottom: none;
 }
 
 .score-row .player-name {
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70px;
 }
 
 .score-row .round-score {
     color: #7dcea0;
     font-weight: 700;
     font-family: 'Courier New', monospace;
-    font-size: 0.85rem;
+    font-size: 0.7rem;
 }
 
 .score-row .round-score::before {
@@ -897,7 +890,7 @@ hr {
     color: var(--gold);
     font-family: 'Courier New', monospace;
     text-shadow: var(--glow-gold);
-    font-size: 0.9rem;
+    font-size: 0.75rem;
 }
 
 .score-row.sitting-out {
@@ -911,7 +904,7 @@ hr {
 }
 
 .sitting-label {
-    font-size: 0.7rem;
+    font-size: 0.6rem;
     color: var(--text-muted);
     text-transform: uppercase;
 }
@@ -1766,12 +1759,12 @@ hr {
     }
     
     .game-page .scoreboard {
-        margin: 8px 0;
-        padding: 10px 20px;
+        margin: 4px 0;
+        padding: 4px 10px;
     }
     
     .game-page .score-row {
-        padding: 8px 14px;
+        padding: 4px 10px;
     }
     
     .game-page .game-actions {
@@ -1822,19 +1815,20 @@ hr {
     }
     
     .scoreboard {
-        grid-template-columns: repeat(3, 1fr);
+        flex-wrap: wrap;
     }
     
     .score-row {
-        flex-direction: column;
-        padding: 6px 8px;
+        padding: 4px 6px;
+        flex: 0 0 calc(33.33% - 1px);
     }
     
-    /* Remove right border on last column (3rd item in each row on mobile) */
-    .score-row:nth-child(5n) {
-        border-right: 2px solid var(--border-gold);
+    .score-row .player-name {
+        max-width: 50px;
+        font-size: 0.65rem;
     }
     
+    /* Remove right border on every 3rd item on mobile */
     .score-row:nth-child(3n) {
         border-right: none;
     }
