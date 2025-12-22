@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Ошибка сервера - Своя Jeopardy!{% endblock %}
+{% block title %}Ошибка сервера - Своя Игра{% endblock %}
 
 {% block content %}
 <div class="error-page">
-    <div class="error-icon">⚠️</div>
+    <div class="error-icon">!</div>
     <h1>Что-то пошло не так</h1>
     <p class="error-message">К сожалению, произошла непредвиденная ошибка. Попробуйте ещё раз.</p>
     <p class="error-code">Ошибка 500</p>
     
     <div class="error-actions">
-        <a href="{{ url_for('main.entry') }}" class="btn btn-primary">🏠 На главную</a>
+        <a href="{{ url_for('main.entry') }}" class="btn btn-primary">На главную</a>
     </div>
 </div>
 {% endblock %}

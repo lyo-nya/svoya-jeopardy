@@ -23,7 +23,7 @@
     {% if revealed %}
         <div class="answer-section">
             <div class="answer-label">Ответ:</div>
-            <div class="answer-text">✨ {{ question.answer }} ✨</div>
+            <div class="answer-text">{{ question.answer }}</div>
         </div>
         
         {% if is_host %}
@@ -41,7 +41,7 @@
     {% else %}
         {% if is_host %}
             <form method="POST" action="{{ url_for('game.reveal_answer', question_id=question.id) }}">
-                <button type="submit" class="btn btn-primary reveal-btn">👀 Показать ответ</button>
+                <button type="submit" class="btn btn-primary reveal-btn">Показать ответ</button>
             </form>
         {% else %}
             <p class="waiting-text">Ожидаем, пока хост покажет ответ...</p>

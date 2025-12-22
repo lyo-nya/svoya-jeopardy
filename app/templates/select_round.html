@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Выбор раунда - Своя Jeopardy!{% endblock %}
+{% block title %}Выбор раунда - Своя Игра{% endblock %}
 
 {% block content %}
-<h1>🎄 Своя Jeopardy! 🎄</h1>
+<h1>СВОЯ ИГРА</h1>
 <h2>Выберите чьи вопросы играть</h2>
 
 <p>Выберите игрока, чьи вопросы сыграть следующими. Этот игрок будет пропускать раунд.</p>
@@ -12,7 +12,7 @@
     {% for p in available_players %}
         <form method="POST" action="{{ url_for('game.set_round', player_id=p.id) }}" class="round-option">
             <div class="player-card">
-                <span class="player-name">👤 {{ p.name }}</span>
+                <span class="player-name">{{ p.name }}</span>
                 {% set cat_count = p.categories | list | length %}
                 {% set q_count = namespace(total=0) %}
                 {% for cat in p.categories %}
@@ -20,11 +20,11 @@
                 {% endfor %}
                 <span class="category-count">{{ cat_count }} кат., {{ q_count.total }} вопр.</span>
             </div>
-            <button type="submit" class="btn btn-primary">▶️ Играть вопросы {{ p.name }}</button>
+            <button type="submit" class="btn btn-primary">Играть вопросы {{ p.name }}</button>
         </form>
     {% else %}
         <p>Все раунды сыграны!</p>
-        <a href="{{ url_for('main.results') }}" class="btn btn-primary">🏆 Итоги игры</a>
+        <a href="{{ url_for('main.results') }}" class="btn btn-primary">Итоги игры</a>
     {% endfor %}
 </div>
 
@@ -33,7 +33,7 @@
         <h3>Сыгранные раунды:</h3>
         {% for round in completed_rounds %}
             <div class="completed-round-item">
-                ✓ Раунд {{ round.round_number }}: вопросы {{ round.player.name }}
+                Раунд {{ round.round_number }}: вопросы {{ round.player.name }}
             </div>
         {% endfor %}
     </div>

@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Игровое поле - Своя Jeopardy!{% endblock %}
+{% block title %}Игровое поле - Своя Игра{% endblock %}
 
 {% block content %}
-<h1>🎄 Раунд {{ current_round.round_number }}: Вопросы {{ sitting_out_player.name }} 🎄</h1>
+<h1>Раунд {{ current_round.round_number }}: Вопросы {{ sitting_out_player.name }}</h1>
 
 <div class="game-board" style="--category-count: {{ categories | length }}">
     <!-- Category headers -->
@@ -55,14 +55,14 @@
 
 {% if all_answered and is_host %}
     <div class="round-complete">
-        <p>🎉 Все вопросы отвечены!</p>
+        <p>Все вопросы отвечены!</p>
         <form method="POST" action="{{ url_for('game.next_round') }}">
-            <button type="submit" class="btn btn-primary">Завершить раунд →</button>
+            <button type="submit" class="btn btn-primary">Завершить раунд</button>
         </form>
     </div>
 {% endif %}
 
 <div class="game-actions">
-    <a href="{{ url_for('main.scores') }}" class="btn">📊 Таблица счёта</a>
+    <a href="{{ url_for('main.scores') }}" class="btn">Таблица счёта</a>
 </div>
 {% endblock %}

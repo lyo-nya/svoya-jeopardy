@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Лобби - Своя Jeopardy!{% endblock %}
+{% block title %}Лобби - Своя Игра{% endblock %}
 
 {% block content %}
-<h1>🎆 Своя Jeopardy! 🎆</h1>
+<h1>СВОЯ ИГРА</h1>
 <h2>Ожидаем игроков...</h2>
 
 <div class="players-list">
@@ -16,15 +16,11 @@
         {% endfor %}
         <div class="player-item">
             <span class="player-name">
-                👤 {{ p.name }}
-                {% if p.is_host %}<span class="host-badge">(Хост)</span>{% endif %}
+                {{ p.name }}
+                {% if p.is_host %}<span class="host-badge">Ведущий</span>{% endif %}
             </span>
             <span class="status {% if p.questions_submitted %}status-ready{% else %}status-empty{% endif %}">
-                {% if p.questions_submitted %}
-                    ✓ {{ q_count.value }}/20 вопросов
-                {% else %}
-                    ○ {{ q_count.value }}/20 вопросов
-                {% endif %}
+                {{ q_count.value }}/20 вопросов
             </span>
         </div>
     {% else %}
@@ -40,22 +36,22 @@
 </div>
 
 <div class="lobby-actions">
-    <a href="{{ url_for('setup.setup_overview') }}" class="btn">✏️ Мои вопросы</a>
+    <a href="{{ url_for('setup.setup_overview') }}" class="btn">Мои вопросы</a>
     
     {% if is_host %}
         {% if ready_count > 0 %}
             <form method="POST" action="{{ url_for('game.start_game') }}" style="display: inline;">
-                <button type="submit" class="btn btn-primary">🚀 Начать игру</button>
+                <button type="submit" class="btn btn-primary">Начать игру</button>
             </form>
         {% else %}
-            <button class="btn" disabled>🚀 Начать игру</button>
+            <button class="btn" disabled>Начать игру</button>
         {% endif %}
     {% endif %}
 </div>
 
 {% if game.status == "in_progress" %}
     <div class="game-started">
-        <p>🎮 Игра уже идёт!</p>
+        <p>Игра уже идёт!</p>
         <a href="{{ url_for('game.game_board') }}" class="btn btn-primary">Перейти к игре</a>
     </div>
 {% endif %}
