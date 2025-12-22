@@ -1,6 +1,6 @@
 """Main routes for New Year Jeopardy Party Game."""
 
-from flask import redirect, url_for, render_template, g, current_app, jsonify, request
+from flask import render_template, g, current_app, jsonify, request
 from app.routes import main_bp
 from app.services import (
     telegram_required,
@@ -8,13 +8,34 @@ from app.services import (
     get_or_create_game,
     get_or_create_player,
     get_current_player,
+    redirect_with_init_data,
 )
 
 
 @main_bp.route("/")
-@telegram_required
 def index():
-    """Entry point - redirect based on game state."""
+    """
+    Entry point - landing page that handles Telegram WebApp initialization.
+    
+    This page doesn't require authentication because it's the first page loaded
+    by Telegram. It uses JavaScript to capture initData and redirect properly.
+    """
+    # Check if init_data is already provided (subsequent requests)
+    init_data = request.form.get("init_data") or request.args.get("init_data")
+    
+    if init_data:
+        # We have init_data, redirect to the authenticated start route
+        # This ensures the @telegram_required decorator is properly applied
+        return redirect_with_init_data("main.start")
+    
+    # No init_data - render landing page that will capture it via JavaScript
+    return render_template("landing.html")
+
+
+@main_bp.route("/start")
+@telegram_required
+def start():
+    """Authenticated entry point - redirect based on game state."""
     chat_id = get_chat_id()
     if not chat_id:
         return "Could not determine chat", 400
@@ -25,12 +46,12 @@ def index():
     
     # Redirect based on game status
     if game.status == "completed":
-        return redirect(url_for("main.results"))
+        return redirect_with_init_data("main.results")
     elif game.status == "in_progress":
-        return redirect(url_for("game.game_board"))
+        return redirect_with_init_data("game.game_board")
     else:
         # Setup phase - go to question submission
-        return redirect(url_for("setup.setup_overview"))
+        return redirect_with_init_data("setup.setup_overview")
 
 
 @main_bp.route("/lobby")
@@ -104,7 +125,7 @@ def results():
     player = get_or_create_player(game, telegram_data)
     
     if game.status != "completed":
-        return redirect(url_for("main.lobby"))
+        return redirect_with_init_data("main.lobby")
     
     # Get all players sorted by score
     players = list(game.players.order_by("total_score").all())

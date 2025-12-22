@@ -1,13 +1,13 @@
 """Setup routes for question submission."""
 
 import os
-from flask import render_template, request, redirect, url_for, flash, current_app, g, send_from_directory
+from flask import render_template, request, flash, current_app, g, send_from_directory
 from werkzeug.utils import secure_filename
 from PIL import Image
 from app.routes import setup_bp
 from app import db
 from app.models import Category, Question
-from app.services import telegram_required, get_chat_id, get_or_create_game, get_or_create_player
+from app.services import telegram_required, get_chat_id, get_or_create_game, get_or_create_player, redirect_with_init_data
 
 POINT_VALUES = [100, 200, 300, 400, 500]
 
@@ -79,7 +79,7 @@ def setup_overview():
     # Check if game already started
     if game.status != "setup":
         flash("Game has already started. You cannot edit questions.", "error")
-        return redirect(url_for("main.lobby"))
+        return redirect_with_init_data("main.lobby")
     
     # Get player's categories as dict by position
     categories = {}
@@ -99,7 +99,7 @@ def edit_category(pos: int):
     """Display category edit form."""
     if pos < 0 or pos > 3:
         flash("Invalid category position", "error")
-        return redirect(url_for("setup.setup_overview"))
+        return redirect_with_init_data("setup.setup_overview")
     
     chat_id = get_chat_id()
     if not chat_id:
@@ -112,7 +112,7 @@ def edit_category(pos: int):
     # Check if game already started
     if game.status != "setup":
         flash("Game has already started. You cannot edit questions.", "error")
-        return redirect(url_for("main.lobby"))
+        return redirect_with_init_data("main.lobby")
     
     # Get existing category if any
     category = Category.query.filter_by(player_id=player.id, position=pos).first()
@@ -132,7 +132,7 @@ def save_category(pos: int):
     """Save category and questions."""
     if pos < 0 or pos > 3:
         flash("Invalid category position", "error")
-        return redirect(url_for("setup.setup_overview"))
+        return redirect_with_init_data("setup.setup_overview")
     
     chat_id = get_chat_id()
     if not chat_id:
@@ -145,7 +145,7 @@ def save_category(pos: int):
     # Check if game already started
     if game.status != "setup":
         flash("Game has already started. You cannot edit questions.", "error")
-        return redirect(url_for("main.lobby"))
+        return redirect_with_init_data("main.lobby")
     
     # Get or create category
     category = Category.query.filter_by(player_id=player.id, position=pos).first()
@@ -159,7 +159,7 @@ def save_category(pos: int):
     
     if not category.name:
         flash("Category name is required", "error")
-        return redirect(url_for("setup.edit_category", pos=pos))
+        return redirect_with_init_data("setup.edit_category", pos=pos)
     
     db.session.commit()
     
@@ -174,7 +174,7 @@ def save_category(pos: int):
         
         if not question_text or not answer_text:
             flash(f"Question {i + 1} is incomplete", "error")
-            return redirect(url_for("setup.edit_category", pos=pos))
+            return redirect_with_init_data("setup.edit_category", pos=pos)
         
         # Get or create question
         question = existing_questions.get(points)
@@ -202,4 +202,4 @@ def save_category(pos: int):
         db.session.commit()
     
     flash(f"Category '{category.name}' saved!", "success")
-    return redirect(url_for("setup.setup_overview"))
+    return redirect_with_init_data("setup.setup_overview")

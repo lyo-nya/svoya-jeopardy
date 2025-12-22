@@ -1,6 +1,6 @@
 """Game routes for gameplay control."""
 
-from flask import render_template, redirect, url_for, flash, g
+from flask import render_template, flash, g
 from app.routes import game_bp
 from app import db
 from app.models import Game, Player, Round, RoundScore, Category, Question
@@ -10,6 +10,7 @@ from app.services import (
     get_chat_id,
     get_or_create_game,
     get_or_create_player,
+    redirect_with_init_data,
 )
 
 
@@ -26,13 +27,13 @@ def game_board():
     player = get_or_create_player(game, telegram_data)
     
     if game.status != "in_progress":
-        return redirect(url_for("main.lobby"))
+        return redirect_with_init_data("main.lobby")
     
     # Get current round
     current_round = Round.query.get(game.current_round_id) if game.current_round_id else None
     
     if not current_round:
-        return redirect(url_for("game.select_round"))
+        return redirect_with_init_data("game.select_round")
     
     # Get the player whose questions are being played (sitting out)
     sitting_out_player = current_round.player
@@ -83,25 +84,25 @@ def start_game():
     # Only host can start
     if not player.is_host:
         flash("Only the host can start the game", "error")
-        return redirect(url_for("main.lobby"))
+        return redirect_with_init_data("main.lobby")
     
     # Check if already started
     if game.status != "setup":
         flash("Game has already started", "error")
-        return redirect(url_for("main.lobby"))
+        return redirect_with_init_data("main.lobby")
     
     # Check if we have enough players
     players = list(game.players.all())
     if len(players) < 5:
         flash(f"Need 5 players to start. Currently have {len(players)}.", "error")
-        return redirect(url_for("main.lobby"))
+        return redirect_with_init_data("main.lobby")
     
     # Check if all players submitted questions
     not_ready = [p for p in players if not p.questions_submitted]
     if not_ready:
         names = ", ".join(p.name for p in not_ready)
         flash(f"These players haven't submitted questions: {names}", "error")
-        return redirect(url_for("main.lobby"))
+        return redirect_with_init_data("main.lobby")
     
     # Create Round records for each player
     for i, p in enumerate(players):
@@ -118,7 +119,7 @@ def start_game():
     db.session.commit()
     
     flash("Game started! Select whose questions to play first.", "success")
-    return redirect(url_for("game.select_round"))
+    return redirect_with_init_data("game.select_round")
 
 
 @game_bp.route("/select-round", methods=["GET"])
@@ -134,7 +135,7 @@ def select_round():
     player = get_or_create_player(game, telegram_data)
     
     if game.status != "in_progress":
-        return redirect(url_for("main.lobby"))
+        return redirect_with_init_data("main.lobby")
     
     # Get rounds that haven't been played yet
     pending_rounds = Round.query.filter_by(game_id=game.id, status="pending").all()
@@ -150,7 +151,7 @@ def select_round():
     if not available_players:
         game.status = "completed"
         db.session.commit()
-        return redirect(url_for("main.results"))
+        return redirect_with_init_data("main.results")
     
     return render_template(
         "select_round.html",
@@ -178,14 +179,14 @@ def set_round(player_id: int):
     # Only host can select round
     if not player.is_host:
         flash("Only the host can select rounds", "error")
-        return redirect(url_for("game.select_round"))
+        return redirect_with_init_data("game.select_round")
     
     # Find the round for this player
     round_record = Round.query.filter_by(game_id=game.id, player_id=player_id, status="pending").first()
     
     if not round_record:
         flash("Invalid round selection", "error")
-        return redirect(url_for("game.select_round"))
+        return redirect_with_init_data("game.select_round")
     
     # Set as current round
     round_record.status = "in_progress"
@@ -204,7 +205,7 @@ def set_round(player_id: int):
     db.session.commit()
     
     flash(f"Playing {round_record.player.name}'s questions!", "success")
-    return redirect(url_for("game.game_board"))
+    return redirect_with_init_data("game.game_board")
 
 
 @game_bp.route("/question/<int:question_id>", methods=["GET"])
@@ -242,7 +243,7 @@ def show_question(question_id: int):
 def reveal_answer(question_id: int):
     """Reveal the answer to a question."""
     # Just redirect back to question page with reveal flag
-    return redirect(url_for("game.show_question", question_id=question_id, revealed="1"))
+    return redirect_with_init_data("game.show_question", question_id=question_id, revealed="1")
 
 
 @game_bp.route("/award/<int:question_id>/<int:player_id>", methods=["POST"])
@@ -260,7 +261,7 @@ def award_points(question_id: int, player_id: int):
     # Only host can award points
     if not player.is_host:
         flash("Only the host can award points", "error")
-        return redirect(url_for("game.game_board"))
+        return redirect_with_init_data("game.game_board")
     
     question = Question.query.get_or_404(question_id)
     
@@ -281,7 +282,7 @@ def award_points(question_id: int, player_id: int):
     db.session.commit()
     
     flash(f"Awarded {question.points} points!", "success")
-    return redirect(url_for("game.game_board"))
+    return redirect_with_init_data("game.game_board")
 
 
 @game_bp.route("/skip/<int:question_id>", methods=["POST"])
@@ -299,7 +300,7 @@ def skip_question(question_id: int):
     # Only host can skip
     if not player.is_host:
         flash("Only the host can skip questions", "error")
-        return redirect(url_for("game.game_board"))
+        return redirect_with_init_data("game.game_board")
     
     question = Question.query.get_or_404(question_id)
     question.is_answered = True
@@ -307,7 +308,7 @@ def skip_question(question_id: int):
     db.session.commit()
     
     flash("Question skipped", "success")
-    return redirect(url_for("game.game_board"))
+    return redirect_with_init_data("game.game_board")
 
 
 @game_bp.route("/next-round", methods=["POST"])
@@ -325,7 +326,7 @@ def next_round():
     # Only host can advance
     if not player.is_host:
         flash("Only the host can advance rounds", "error")
-        return redirect(url_for("game.game_board"))
+        return redirect_with_init_data("game.game_board")
     
     current_round = Round.query.get(game.current_round_id) if game.current_round_id else None
     
@@ -339,4 +340,4 @@ def next_round():
         game.current_round_id = None
         db.session.commit()
     
-    return redirect(url_for("game.select_round"))
+    return redirect_with_init_data("game.select_round")

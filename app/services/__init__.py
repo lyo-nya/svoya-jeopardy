@@ -12,6 +12,7 @@ from app.services.telegram import (
     telegram_required,
     host_required,
     send_webapp_button,
+    redirect_with_init_data,
 )
 
 __all__ = [
@@ -26,4 +27,5 @@ __all__ = [
     "telegram_required",
     "host_required",
     "send_webapp_button",
+    "redirect_with_init_data",
 ]

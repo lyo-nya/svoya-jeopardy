@@ -340,3 +340,18 @@ def host_required(f):
         return f(*args, **kwargs)
     
     return decorated_function
+
+
+def redirect_with_init_data(endpoint, **kwargs):
+    """
+    Redirect to an endpoint while preserving init_data.
+    
+    This ensures Telegram authentication data is passed through redirects.
+    """
+    from flask import redirect, url_for
+    init_data = request.form.get("init_data") or request.args.get("init_data")
+    url = url_for(endpoint, **kwargs)
+    if init_data:
+        separator = "&" if "?" in url else "?"
+        url = f"{url}{separator}init_data={init_data}"
+    return redirect(url)
