@@ -215,6 +215,41 @@ hr {
     font-weight: bold;
 }
 
+.host-badge {
+    color: #ffd700;
+    font-size: 12px;
+}
+
+.lobby-status {
+    text-align: center;
+    margin: 24px 0;
+}
+
+.lobby-status .warning {
+    color: #ffa500;
+}
+
+.lobby-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 24px 0;
+}
+
+.lobby-actions .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.game-started {
+    text-align: center;
+    margin-top: 24px;
+    padding: 16px;
+    background: #2d5a27;
+    border-radius: 12px;
+}
+
 /* Game board */
 .game-board {
     display: grid;
