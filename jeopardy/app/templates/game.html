@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Game Board - New Year Jeopardy{% endblock %}
+
+{% block content %}
+<h1>🎄 Round {{ current_round.round_number }}: {{ sitting_out_player.name }}'s Questions 🎄</h1>
+
+<div class="game-board">
+    <!-- Category headers -->
+    {% for category in categories %}
+        <div class="category-header-cell">{{ category.name }}</div>
+    {% endfor %}
+    
+    <!-- Question grid (5 rows of point values) -->
+    {% set point_values = [100, 200, 300, 400, 500] %}
+    {% for points in point_values %}
+        {% for category in categories %}
+            {% set question = category.questions | selectattr("points", "equalto", points) | first %}
+            {% if question %}
+                {% if question.is_answered %}
+                    <div class="question-cell answered">—</div>
+                {% else %}
+                    <a href="{{ url_for('game.show_question', question_id=question.id) }}" class="question-cell">
+                        {{ points }}
+                    </a>
+                {% endif %}
+            {% else %}
+                <div class="question-cell answered">—</div>
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+</div>
+
+<div class="scoreboard">
+    <div class="scoreboard-header">
+        <div class="round-scores-title">Round Scores</div>
+        <div class="total-scores-title">Total</div>
+    </div>
+    
+    {% for p in playing_players %}
+        <div class="score-row">
+            <span class="player-name">{{ p.name }}</span>
+            <span class="round-score">{{ round_scores.get(p.id, 0) }}</span>
+            <span class="total-score">{{ p.total_score }}</span>
+        </div>
+    {% endfor %}
+    
+    <div class="score-row sitting-out">
+        <span class="player-name">{{ sitting_out_player.name }}</span>
+        <span class="round-score">—</span>
+        <span class="total-score">{{ sitting_out_player.total_score }}</span>
+        <span class="sitting-label">(sitting out)</span>
+    </div>
+</div>
+
+{% if all_answered and is_host %}
+    <div class="round-complete">
+        <p>🎉 All questions answered!</p>
+        <form method="POST" action="{{ url_for('game.next_round') }}">
+            <button type="submit" class="btn btn-primary">Complete Round & Continue</button>
+        </form>
+    </div>
+{% endif %}
+
+<div class="game-actions">
+    <a href="{{ url_for('main.scores') }}" class="btn">View Full Scores</a>
+</div>
+{% endblock %}

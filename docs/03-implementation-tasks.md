@@ -6,188 +6,185 @@ This document breaks down the implementation into concrete tasks. Estimated tota
 
 ---
 
-## Phase 1: Project Setup (1-2 hours)
+## Phase 1: Project Setup (1-2 hours) ✅ COMPLETE
 
-### Task 1.1: Initialize Project Structure
-- [ ] Create directory structure as per technical design
-- [ ] Initialize project with `uv init`
-- [ ] Add dependencies: `uv add flask flask-sqlalchemy gunicorn pillow`
-- [ ] Create `config.py` with Flask configuration
-- [ ] Create Flask app factory in `__init__.py`
+### Task 1.1: Initialize Project Structure ✅
+- [x] Create directory structure as per technical design
+- [x] Initialize project with `uv init`
+- [x] Add dependencies: `uv add flask flask-sqlalchemy gunicorn pillow`
+- [x] Create `config.py` with Flask configuration
+- [x] Create Flask app factory in `__init__.py`
 
-### Task 1.2: Database Setup
-- [ ] Define SQLAlchemy models in `models.py`
-- [ ] Create database initialization script
-- [ ] Test database creation and basic operations
+### Task 1.2: Database Setup ✅
+- [x] Define SQLAlchemy models in `models.py`
+- [x] Create database initialization script
+- [x] Test database creation and basic operations
 
-### Task 1.3: Railway Setup
-- [ ] Add start script to `pyproject.toml` for Railpack
-- [ ] Configure for persistent volume (SQLite + uploads)
-
----
-
-## Phase 2: Telegram Integration (1-2 hours)
-
-### Task 2.1: Telegram WebApp Validation
-- [ ] Implement `validate_telegram_data()` function
-- [ ] Create middleware/decorator to validate all requests
-- [ ] Extract and store user info (id, name)
-- [ ] Handle validation failures gracefully
-
-### Task 2.2: Bot Webhook for Host Detection
-- [ ] Create `/webhook` endpoint for Telegram bot updates
-- [ ] Handle `my_chat_member` update type
-- [ ] When bot is added to group, store adder as host in games table
-- [ ] Register webhook URL with Telegram API
-
-### Task 2.3: Session Management
-- [ ] Store current user in Flask session/context
-- [ ] Create `get_current_player()` helper
-- [ ] Create `get_current_game()` helper (from chat_id)
-- [ ] Implement host detection
-
-### Task 2.4: Frontend Telegram Integration
-- [ ] Create `telegram.js` for WebApp API
-- [ ] Initialize WebApp and expand
-- [ ] Apply Telegram theme colors
-- [ ] Include init_data in all form submissions
+### Task 1.3: Railway Setup ✅
+- [x] Add start script to `pyproject.toml` for Railpack
+- [x] Configure for persistent volume (SQLite + uploads)
+- [x] Add Procfile for deployment
 
 ---
 
-## Phase 3: Base Templates & Styling (2-3 hours)
+## Phase 2: Telegram Integration (1-2 hours) ✅ COMPLETE
 
-### Task 3.1: Base Template
-- [ ] Create `base.html` with:
-  - HTML5 structure
-  - Meta tags for mobile
-  - Telegram WebApp script include
-  - CSS include
-  - Common header/navigation
-  - Flash message display
-  - Footer with New Year theme
+### Task 2.1: Telegram WebApp Validation ✅
+- [x] Implement `validate_telegram_data()` function
+- [x] Create middleware/decorator to validate all requests
+- [x] Extract and store user info (id, name)
+- [x] Handle validation failures gracefully
 
-### Task 3.2: New Year Theme CSS
-- [ ] Define CSS variables for color scheme:
-  - Primary: Deep midnight blue (#1a1a2e)
-  - Secondary: Gold (#ffd700)
-  - Accent: Champagne (#f7e7ce)
-  - Success: Festive green (#2d5a27)
-- [ ] Style base elements (buttons, inputs, cards)
-- [ ] Create game board grid styles
-- [ ] Add subtle sparkle/snow animations (CSS only)
-- [ ] Ensure mobile-first responsive design
-- [ ] Style scoreboard component
+### Task 2.2: Bot Webhook for Host Detection ✅
+- [x] Create `/webhook` endpoint for Telegram bot updates
+- [x] Handle `my_chat_member` update type
+- [x] When bot is added to group, store adder as host in games table
+- [ ] Register webhook URL with Telegram API (requires deployment)
 
-### Task 3.3: Component Styles
-- [ ] Category card styles
-- [ ] Question tile styles (default, answered, selected)
-- [ ] Player avatar/name styles
-- [ ] Score display styles
-- [ ] Winner celebration styles
+### Task 2.3: Session Management ✅
+- [x] Store current user in Flask session/context
+- [x] Create `get_current_player()` helper
+- [x] Create `get_current_game()` helper (from chat_id)
+- [x] Implement host detection
+
+### Task 2.4: Frontend Telegram Integration ✅
+- [x] Create `telegram.js` for WebApp API
+- [x] Initialize WebApp and expand
+- [ ] Apply Telegram theme colors (skipped for MVP)
+- [x] Include init_data in all form submissions
 
 ---
 
-## Phase 4: Question Submission (2-3 hours)
+## Phase 3: Base Templates & Styling (2-3 hours) ⚠️ PARTIAL
 
-### Task 4.1: Setup Page Routes
-- [ ] Create `/setup` route - main submission page
-- [ ] Create `/setup/category/<pos>` GET route - edit category
-- [ ] Create `/setup/category/<pos>` POST route - save category
-- [ ] Create `/setup/upload-image` POST route - image upload
+### Task 3.1: Base Template ✅
+- [x] Create `base.html` with:
+  - [x] HTML5 structure
+  - [x] Meta tags for mobile
+  - [x] Telegram WebApp script include
+  - [x] CSS include
+  - [ ] Common header/navigation (minimal)
+  - [x] Flash message display
+  - [ ] Footer with New Year theme (skipped for MVP)
 
-### Task 4.2: Setup Templates
-- [ ] Create `setup.html` - overview of 4 categories
-- [ ] Create `category_edit.html` - form for category + 5 questions
-- [ ] Add image upload UI with preview
-- [ ] Add form validation (client-side)
+### Task 3.2: New Year Theme CSS ⚠️ MINIMAL
+- [ ] Define CSS variables for color scheme (basic colors only)
+- [x] Style base elements (buttons, inputs, cards)
+- [x] Create game board grid styles
+- [ ] Add subtle sparkle/snow animations (skipped for MVP)
+- [x] Ensure mobile-first responsive design
+- [x] Style scoreboard component
 
-### Task 4.3: Question Storage Logic
-- [ ] Implement category creation/update
-- [ ] Implement question creation/update
-- [ ] Handle image upload (validate, resize, store)
-- [ ] Mark player as "questions_submitted" when all 4 complete
-- [ ] Prevent edits after game starts
-
----
-
-## Phase 5: Lobby & Game Start (1-2 hours)
-
-### Task 5.1: Lobby Page
-- [ ] Create `/lobby` route
-- [ ] Show all players with submission status
-- [ ] Show "Start Game" button for host (disabled until all ready)
-- [ ] Create `lobby.html` template
-
-### Task 5.2: Game Initialization
-- [ ] Create `/game/start` POST route
-- [ ] Initialize Round records for each player
-- [ ] Set game status to "in_progress"
-- [ ] Lock question submissions
-- [ ] Redirect to round selection
+### Task 3.3: Component Styles ⚠️ MINIMAL
+- [x] Category card styles
+- [x] Question tile styles (default, answered, selected)
+- [x] Player avatar/name styles
+- [x] Score display styles
+- [ ] Winner celebration styles (skipped for MVP)
 
 ---
 
-## Phase 6: Game Board & Gameplay (3-4 hours)
+## Phase 4: Question Submission (2-3 hours) ✅ COMPLETE
 
-### Task 6.1: Round Selection
-- [ ] Create `/game/select-round` GET route - choose whose set
-- [ ] Create `/game/select-round/<player_id>` POST route
-- [ ] Set current round, mark as in_progress
-- [ ] Initialize round scores for eligible players
+### Task 4.1: Setup Page Routes ✅
+- [x] Create `/setup` route - main submission page
+- [x] Create `/setup/category/<pos>` GET route - edit category
+- [x] Create `/setup/category/<pos>` POST route - save category
+- [x] Create `/setup/upload-image` POST route - image upload
 
-### Task 6.2: Game Board
-- [ ] Create `/game` route - main board view
-- [ ] Query current round's categories and questions
-- [ ] Calculate scores for display
-- [ ] Identify sitting-out player
-- [ ] Create `game.html` template with grid
+### Task 4.2: Setup Templates ✅
+- [x] Create `setup.html` - overview of 4 categories
+- [x] Create `category_edit.html` - form for category + 5 questions
+- [x] Add image upload UI with preview
+- [ ] Add form validation (client-side) (server-side only for MVP)
 
-### Task 6.3: Question Display
-- [ ] Create `/game/question/<id>` GET route
-- [ ] Show question text and image
-- [ ] Create `question.html` template
-- [ ] Add "Reveal Answer" button
-
-### Task 6.4: Answer Reveal
-- [ ] Create `/game/reveal/<question_id>` POST route
-- [ ] Update question display to show answer
-- [ ] Show player selection buttons
-
-### Task 6.5: Point Awarding
-- [ ] Create `/game/award/<question_id>/<player_id>` POST route
-- [ ] Update question as answered
-- [ ] Add points to player's round score
-- [ ] Redirect back to game board
-
-### Task 6.6: Round Completion
-- [ ] Detect when all 20 questions answered
-- [ ] Create `/game/next-round` POST route
-- [ ] Add round scores to total scores
-- [ ] Mark round as completed
-- [ ] Show round selection for next player's set
+### Task 4.3: Question Storage Logic ✅
+- [x] Implement category creation/update
+- [x] Implement question creation/update
+- [x] Handle image upload (validate, resize, store)
+- [x] Mark player as "questions_submitted" when all 4 complete
+- [x] Prevent edits after game starts
 
 ---
 
-## Phase 7: Scores & Results (1 hour)
+## Phase 5: Lobby & Game Start (1-2 hours) ✅ COMPLETE
 
-### Task 7.1: Scores Page
-- [ ] Create `/scores` route
-- [ ] Query current round scores and total scores
-- [ ] Create `scores.html` template
-- [ ] Make accessible to all players
+### Task 5.1: Lobby Page ✅
+- [x] Create `/lobby` route
+- [x] Show all players with submission status
+- [x] Show "Start Game" button for host (disabled until all ready)
+- [x] Create `lobby.html` template
 
-### Task 7.2: Final Results
-- [ ] Detect when all rounds completed
-- [ ] Create `/results` route
-- [ ] Calculate final standings (overall totals)
-- [ ] Query per-round scores for breakdown table
-- [ ] Create `results.html` with celebration styling
-- [ ] Display overall standings and per-round breakdown
-- [ ] Highlight winner
+### Task 5.2: Game Initialization ✅
+- [x] Create `/game/start` POST route
+- [x] Initialize Round records for each player
+- [x] Set game status to "in_progress"
+- [x] Lock question submissions
+- [x] Redirect to round selection
 
 ---
 
-## Phase 8: Polish & Testing (1-2 hours)
+## Phase 6: Game Board & Gameplay (3-4 hours) ✅ COMPLETE
+
+### Task 6.1: Round Selection ✅
+- [x] Create `/game/select-round` GET route - choose whose set
+- [x] Create `/game/select-round/<player_id>` POST route
+- [x] Set current round, mark as in_progress
+- [x] Initialize round scores for eligible players
+
+### Task 6.2: Game Board ✅
+- [x] Create `/game` route - main board view
+- [x] Query current round's categories and questions
+- [x] Calculate scores for display
+- [x] Identify sitting-out player
+- [x] Create `game.html` template with grid
+
+### Task 6.3: Question Display ✅
+- [x] Create `/game/question/<id>` GET route
+- [x] Show question text and image
+- [x] Create `question.html` template
+- [x] Add "Reveal Answer" button
+
+### Task 6.4: Answer Reveal ✅
+- [x] Create `/game/reveal/<question_id>` POST route
+- [x] Update question display to show answer
+- [x] Show player selection buttons
+
+### Task 6.5: Point Awarding ✅
+- [x] Create `/game/award/<question_id>/<player_id>` POST route
+- [x] Update question as answered
+- [x] Add points to player's round score
+- [x] Redirect back to game board
+
+### Task 6.6: Round Completion ✅
+- [x] Detect when all 20 questions answered
+- [x] Create `/game/next-round` POST route
+- [x] Add round scores to total scores
+- [x] Mark round as completed
+- [x] Show round selection for next player's set
+
+---
+
+## Phase 7: Scores & Results (1 hour) ⚠️ MINIMAL
+
+### Task 7.1: Scores Page ⚠️ MINIMAL
+- [x] Create `/scores` route
+- [x] Query current round scores and total scores
+- [x] Create `scores.html` template (minimal)
+- [x] Make accessible to all players
+
+### Task 7.2: Final Results ⚠️ MINIMAL
+- [x] Detect when all rounds completed
+- [x] Create `/results` route
+- [x] Calculate final standings (overall totals)
+- [ ] Query per-round scores for breakdown table (skipped for MVP)
+- [x] Create `results.html` with celebration styling (minimal)
+- [x] Display overall standings
+- [x] Highlight winner
+
+---
+
+## Phase 8: Polish & Testing (1-2 hours) ❌ NOT STARTED
 
 ### Task 8.1: Error Handling
 - [ ] Create error templates (404, 500)
@@ -216,9 +213,10 @@ This document breaks down the implementation into concrete tasks. Estimated tota
 
 ---
 
-## Phase 9: Deployment (30 min)
+## Phase 9: Deployment (30 min) ⚠️ READY TO DEPLOY
 
 ### Task 9.1: Deploy to Railway
+- [x] Prepare Procfile and config for Railway
 - [ ] Create Railway account and project
 - [ ] Connect GitHub repository
 - [ ] Add environment variables (bot token, secret key)
@@ -240,44 +238,48 @@ This document breaks down the implementation into concrete tasks. Estimated tota
 
 ## Task Checklist Summary
 
-| Phase | Tasks | Est. Time |
-|-------|-------|-----------|
-| 1. Project Setup | 3 | 1-2h |
-| 2. Telegram Integration | 4 | 1-2h |
-| 3. Templates & Styling | 3 | 2-3h |
-| 4. Question Submission | 3 | 2-3h |
-| 5. Lobby & Game Start | 2 | 1-2h |
-| 6. Game Board & Gameplay | 6 | 3-4h |
-| 7. Scores & Results | 2 | 1h |
-| 8. Polish & Testing | 4 | 1-2h |
-| 9. Deployment | 3 | 30min |
-| **Total** | **29 tasks** | **11-14h** |
+| Phase | Tasks | Status |
+|-------|-------|--------|
+| 1. Project Setup | 3 | ✅ Complete |
+| 2. Telegram Integration | 4 | ✅ Complete |
+| 3. Templates & Styling | 3 | ⚠️ Minimal |
+| 4. Question Submission | 3 | ✅ Complete |
+| 5. Lobby & Game Start | 2 | ✅ Complete |
+| 6. Game Board & Gameplay | 6 | ✅ Complete |
+| 7. Scores & Results | 2 | ⚠️ Minimal |
+| 8. Polish & Testing | 4 | ❌ Not Started |
+| 9. Deployment | 3 | ⚠️ Ready |
+
+**Legend:**
+- ✅ Complete
+- ⚠️ Partial / Minimal MVP
+- ❌ Not Started
 
 ---
 
 ## Dependencies Between Phases
 
 ```
-Phase 1 (Setup)
+Phase 1 (Setup) ✅
     │
-    ├──▶ Phase 2 (Telegram) ──▶ Phase 3 (Templates)
+    ├──▶ Phase 2 (Telegram) ✅ ──▶ Phase 3 (Templates) ⚠️
     │                                │
     │                                ▼
-    │                          Phase 4 (Questions)
+    │                          Phase 4 (Questions) ✅
     │                                │
     │                                ▼
-    │                          Phase 5 (Lobby)
+    │                          Phase 5 (Lobby) ✅
     │                                │
     │                                ▼
-    │                          Phase 6 (Gameplay)
+    │                          Phase 6 (Gameplay) ✅
     │                                │
     │                                ▼
-    │                          Phase 7 (Results)
+    │                          Phase 7 (Results) ⚠️
     │                                │
-    └────────────────────────────────┼───────────▶ Phase 9 (Deploy)
+    └────────────────────────────────┼───────────▶ Phase 9 (Deploy) ⚠️
                                      │
                                      ▼
-                               Phase 8 (Polish)
+                               Phase 8 (Polish) ❌
 ```
 
-Phases 1-2 can be done in parallel by different developers. Phases 3-7 are sequential. Phase 8-9 can be worked on once the core is complete.
+**Current Status:** Core functionality complete. Ready for deployment and testing.
