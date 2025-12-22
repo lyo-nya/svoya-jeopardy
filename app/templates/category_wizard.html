@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Категория {{ pos + 1 }} - Своя Jeopardy!{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('setup.setup_overview') }}" class="back-link">← Назад к категориям</a>
+
+<h1>Категория {{ pos + 1 }}</h1>
+
+<!-- Progress indicator -->
+<div class="wizard-progress">
+    <div class="progress-steps">
+        {% for i in range(6) %}
+            <div class="progress-step {% if i < step %}completed{% elif i == step %}active{% endif %}">
+                {% if i == 0 %}
+                    <span class="step-icon">📝</span>
+                {% else %}
+                    <span class="step-icon">{{ point_values[i-1] }}</span>
+                {% endif %}
+            </div>
+            {% if i < 5 %}
+                <div class="progress-line {% if i < step %}completed{% endif %}"></div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <div class="progress-labels">
+        <span class="progress-label">Название</span>
+        <span class="progress-label">Вопросы</span>
+    </div>
+</div>
+
+<form method="POST" action="{{ url_for('setup.save_category_step', pos=pos, step=step) }}" enctype="multipart/form-data" class="wizard-form">
+    {% if step == 0 %}
+        <!-- Step 0: Category name -->
+        <div class="wizard-step">
+            <h2>Как называется ваша категория?</h2>
+            <p class="step-hint">Придумайте название для темы вопросов</p>
+            
+            <div class="form-group">
+                <input type="text" name="category_name" 
+                       value="{{ category.name if category else '' }}" 
+                       placeholder="например: Фильмы 90-х"
+                       autofocus
+                       class="wizard-input">
+            </div>
+        </div>
+    {% else %}
+        <!-- Steps 1-5: Questions -->
+        {% set points = point_values[step - 1] %}
+        {% set existing_question = questions_by_points.get(points) %}
+        
+        <div class="wizard-step">
+            <div class="points-badge">{{ points }} очков</div>
+            <h2>Вопрос {{ step }} из 5</h2>
+            {% if category and category.name %}
+                <p class="step-category">Категория: <strong>{{ category.name }}</strong></p>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="question_text">Вопрос</label>
+                <textarea id="question_text" name="question_text" 
+                          placeholder="Введите текст вопроса..."
+                          class="wizard-textarea"
+                          autofocus>{{ existing_question.text if existing_question else '' }}</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="answer_text">Ответ</label>
+                <input type="text" id="answer_text" name="answer_text" 
+                       value="{{ existing_question.answer if existing_question else '' }}"
+                       placeholder="Введите правильный ответ..."
+                       class="wizard-input">
+            </div>
+            
+            <div class="form-group">
+                <label for="image_file">Картинка (необязательно)</label>
+                {% if existing_question and existing_question.image_path %}
+                    <div class="current-image">
+                        <img src="{{ url_for('setup.uploaded_file', filename=existing_question.image_path) }}" alt="Текущая картинка">
+                        <p>📎 Картинка прикреплена</p>
+                    </div>
+                {% endif %}
+                <input type="file" id="image_file" name="image_file" accept="image/*">
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Navigation buttons -->
+    <div class="wizard-actions">
+        {% if step > 0 %}
+            <a href="{{ url_for('setup.edit_category_step', pos=pos, step=step - 1) }}" class="btn btn-secondary">
+                ← Назад
+            </a>
+        {% else %}
+            <div></div>
+        {% endif %}
+        
+        <div class="wizard-right-actions">
+            {% if step > 0 %}
+                <button type="submit" name="action" value="skip" class="btn btn-secondary">
+                    Пропустить
+                </button>
+            {% endif %}
+            
+            {% if step < 5 %}
+                <button type="submit" name="action" value="next" class="btn btn-primary">
+                    {% if step == 0 %}Начать вопросы{% else %}Далее{% endif %} →
+                </button>
+            {% else %}
+                <button type="submit" name="action" value="finish" class="btn btn-primary">
+                    ✓ Готово
+                </button>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if step > 0 %}
+        <div class="wizard-finish">
+            <button type="submit" name="action" value="finish" class="btn btn-secondary btn-small">
+                💾 Сохранить и выйти
+            </button>
+        </div>
+    {% endif %}
+</form>
+
+<!-- Summary of entered questions -->
+{% if questions_by_points %}
+<div class="questions-summary">
+    <h3>Добавленные вопросы</h3>
+    {% for points in point_values %}
+        {% set q = questions_by_points.get(points) %}
+        <div class="summary-item {% if q and q.text %}filled{% endif %}">
+            <span class="summary-points">{{ points }}</span>
+            {% if q and q.text %}
+                <span class="summary-text">{{ q.text[:40] }}{% if q.text|length > 40 %}...{% endif %}</span>
+                <span class="summary-check">✓</span>
+            {% else %}
+                <span class="summary-text empty">Не заполнено</span>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

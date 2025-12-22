@@ -407,3 +407,66 @@ def next_round():
         flash("Произошла ошибка. Попробуйте ещё раз.", "error")
     
     return redirect(url_for("game.select_round"))
+
+
+@game_bp.route("/reset", methods=["POST"])
+@telegram_required
+def reset_game():
+    """Reset the game to allow starting fresh."""
+    chat_id = get_chat_id()
+    if not chat_id:
+        return "Could not determine chat", 400
+    
+    telegram_data = g.telegram_data
+    game = get_or_create_game(chat_id, telegram_data["user"]["id"])
+    player = get_or_create_player(game, telegram_data)
+    
+    # Only host can reset
+    if not player.is_host:
+        flash("Только хост может перезапустить игру", "error")
+        return redirect(url_for("main.results"))
+    
+    try:
+        # Delete all round scores
+        RoundScore.query.filter(
+            RoundScore.round_id.in_(
+                db.session.query(Round.id).filter_by(game_id=game.id)
+            )
+        ).delete(synchronize_session=False)
+        
+        # Delete all rounds
+        Round.query.filter_by(game_id=game.id).delete(synchronize_session=False)
+        
+        # Reset all questions to unanswered
+        Question.query.filter(
+            Question.category_id.in_(
+                db.session.query(Category.id).filter(
+                    Category.player_id.in_(
+                        db.session.query(Player.id).filter_by(game_id=game.id)
+                    )
+                )
+            )
+        ).update(
+            {Question.is_answered: False, Question.answered_by_player_id: None},
+            synchronize_session=False
+        )
+        
+        # Reset player scores
+        Player.query.filter_by(game_id=game.id).update(
+            {Player.total_score: 0},
+            synchronize_session=False
+        )
+        
+        # Reset game status
+        game.status = "setup"
+        game.current_round_id = None
+        
+        db.session.commit()
+        flash("🔄 Игра перезапущена! Можете начать заново.", "success")
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Database error resetting game: {e}")
+        flash("Произошла ошибка. Попробуйте ещё раз.", "error")
+        return redirect(url_for("main.results"))
+    
+    return redirect(url_for("main.lobby"))

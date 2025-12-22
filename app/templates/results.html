@@ -87,5 +87,13 @@
     <div class="celebration-footer">
         <p>🎆 Спасибо за игру! 🎆</p>
     </div>
+
+    {% if player.is_host %}
+    <div class="reset-section">
+        <form method="POST" action="{{ url_for('game.reset_game') }}" onsubmit="return confirm('Вы уверены? Все результаты будут сброшены!');">
+            <button type="submit" class="btn btn-secondary">🔄 Начать новую игру</button>
+        </form>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
