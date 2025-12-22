@@ -28,6 +28,9 @@ def create_app(config_name=None):
     # Initialize extensions
     db.init_app(app)
 
+    # Import models so they are registered with SQLAlchemy
+    from app import models  # noqa: F401
+
     # Register blueprints
     from app.routes import main_bp, setup_bp, game_bp
     app.register_blueprint(main_bp)
