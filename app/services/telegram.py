@@ -1,346 +1,177 @@
-"""Telegram WebApp integration service."""
+"""Telegram WebApp authentication and integration."""
 
-import hmac
+from __future__ import annotations
+
 import hashlib
+import hmac
 import json
 import time
-import requests
-from urllib.parse import parse_qs, unquote
 from functools import wraps
-from flask import request, current_app, g, session
+from typing import TYPE_CHECKING, Any, Callable, TypeVar
+from urllib.parse import unquote
+
+import requests
+from flask import current_app, g, redirect, request, session, url_for
+
 from app import db
 from app.models import Game, Player
 
-# Session timeout in seconds (1 hour)
-SESSION_TIMEOUT = 3600
+if TYPE_CHECKING:
+    from flask import Response
+
+F = TypeVar("F", bound=Callable[..., Any])
+
+SESSION_TIMEOUT_SECONDS = 3600
+TELEGRAM_API_TIMEOUT = 10
 
 
-def get_bot_username(bot_token: str) -> str | None:
-    """Get the bot's username from Telegram API."""
-    try:
-        response = requests.get(
-            f"https://api.telegram.org/bot{bot_token}/getMe",
-            timeout=10
-        )
-        result = response.json()
-        if result.get("ok"):
-            return result["result"].get("username")
-    except Exception as e:
-        current_app.logger.error(f"Error getting bot info: {e}")
-    return None
-
-
-def send_webapp_button(chat_id: int, bot_token: str, app_url: str, is_group: bool = True) -> bool:
+def validate_init_data(init_data: str, bot_token: str) -> dict[str, Any] | None:
     """
-    Send a message to a chat with a button to open the WebApp.
+    Validate Telegram WebApp initData using HMAC-SHA256.
     
-    Args:
-        chat_id: The Telegram chat ID
-        bot_token: The bot's API token
-        app_url: The base URL of the web app (e.g., https://svoya-jeopardy.fly.dev)
-        is_group: Whether this is a group chat (affects button type)
-        
-    Returns:
-        True if message was sent successfully, False otherwise
-    """
-    if not bot_token or not app_url:
-        current_app.logger.error(
-            f"send_webapp_button: Missing bot_token={bool(bot_token)}, app_url={bool(app_url)}"
-        )
-        return False
-    
-    # Clean up the app_url (remove trailing slash if present)
-    app_url = app_url.rstrip("/")
-    
-    current_app.logger.info(f"Sending WebApp button to chat {chat_id}, is_group={is_group}")
-    
-    if is_group:
-        # For group chats, web_app buttons don't work in inline keyboards
-        # Use a URL button that deep links to the bot with start parameter
-        bot_username = get_bot_username(bot_token)
-        if not bot_username:
-            current_app.logger.error("Could not get bot username")
-            return False
-        
-        # Deep link to bot with chat_id as start parameter
-        # When user clicks, they open private chat with bot and can launch WebApp
-        start_link = f"https://t.me/{bot_username}?startapp=chat_{chat_id}"
-        
-        keyboard = {
-            "inline_keyboard": [[
-                {
-                    "text": "🎮 Play New Year Jeopardy!",
-                    "url": start_link
-                }
-            ]]
-        }
-        
-        message_text = (
-            "🎆 *New Year Jeopardy Party Game* 🎆\n\n"
-            "Welcome! I'm here to host a fun Jeopardy-style party game.\n\n"
-            "📋 *How to play:*\n"
-            "1. Each player creates their own questions\n"
-            "2. Take turns answering each other's questions\n"
-            "3. Earn points for correct answers\n"
-            "4. Most points wins! 🏆\n\n"
-            "Click the button below to join this game!"
-        )
-    else:
-        # For private chats, web_app buttons work
-        keyboard = {
-            "inline_keyboard": [[
-                {
-                    "text": "🎮 Play New Year Jeopardy!",
-                    "web_app": {"url": app_url}
-                }
-            ]]
-        }
-        
-        message_text = (
-            "🎆 *New Year Jeopardy Party Game* 🎆\n\n"
-            "Welcome! I'm here to host a fun Jeopardy-style party game.\n\n"
-            "📋 *How to play:*\n"
-            "1. Each player creates their own questions\n"
-            "2. Take turns answering each other's questions\n"
-            "3. Earn points for correct answers\n"
-            "4. Most points wins! 🏆\n\n"
-            "Click the button below to open the game!"
-        )
-    
-    payload = {
-        "chat_id": chat_id,
-        "text": message_text,
-        "parse_mode": "Markdown",
-        "reply_markup": json.dumps(keyboard)
-    }
-    
-    try:
-        response = requests.post(
-            f"https://api.telegram.org/bot{bot_token}/sendMessage",
-            json=payload,
-            timeout=10
-        )
-        result = response.json()
-        if response.status_code == 200 and result.get("ok"):
-            current_app.logger.info(f"Successfully sent WebApp button to chat {chat_id}")
-            return True
-        else:
-            current_app.logger.error(
-                f"Failed to send message to chat {chat_id}: "
-                f"status={response.status_code}, response={result}"
-            )
-            return False
-    except Exception as e:
-        current_app.logger.error(f"Error sending message to chat {chat_id}: {e}")
-        return False
-
-
-def validate_telegram_data(init_data: str, bot_token: str) -> dict | None:
-    """
-    Validate Telegram WebApp initData and return parsed data.
-    
-    Returns None if validation fails, otherwise returns dict with:
-    - user: dict with id, first_name, last_name, username
-    - chat_instance: str
-    - chat_type: str
-    - start_param: str (optional, contains chat_id for group chats)
+    Returns parsed data dict if valid, None otherwise.
     """
     if not init_data or not bot_token:
-        current_app.logger.warning(
-            f"Validation failed: init_data={'empty' if not init_data else 'present'}, "
-            f"bot_token={'empty' if not bot_token else 'present'}"
-        )
         return None
-    
-    # Parse the init_data string manually to preserve the exact values
-    # init_data format: key1=value1&key2=value2&...
-    pairs = {}
-    received_hash = None
-    
+
+    pairs: dict[str, str] = {}
+    received_hash: str | None = None
+
     for part in init_data.split("&"):
         if "=" in part:
             key, value = part.split("=", 1)
-            # URL decode the value
             decoded_value = unquote(value)
             if key == "hash":
                 received_hash = decoded_value
             else:
                 pairs[key] = decoded_value
-    
+
     if not received_hash:
-        current_app.logger.warning("Validation failed: no hash in init_data")
         return None
+
+    data_check_string = "\n".join(sorted(f"{k}={v}" for k, v in pairs.items()))
     
-    # Build data check string (sorted key=value pairs, excluding hash)
-    data_pairs = [f"{k}={v}" for k, v in pairs.items()]
-    data_pairs.sort()
-    data_check_string = "\n".join(data_pairs)
-    
-    # Calculate expected hash
-    secret_key = hmac.new(
-        b"WebAppData",
-        bot_token.encode(),
-        hashlib.sha256,
-    ).digest()
-    
-    expected_hash = hmac.new(
-        secret_key,
-        data_check_string.encode(),
-        hashlib.sha256,
-    ).hexdigest()
-    
-    # Verify hash
+    secret_key = hmac.new(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
+    expected_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+
     if not hmac.compare_digest(received_hash, expected_hash):
-        current_app.logger.warning(
-            f"Validation failed: hash mismatch. "
-            f"Data check string (first 100 chars): {data_check_string[:100]}..."
-        )
         return None
+
+    result: dict[str, Any] = {}
     
-    current_app.logger.info("Telegram data validated successfully")
-    
-    # Parse and return data
-    result = {}
-    
-    # Parse user data
-    if "user" in pairs:
-        try:
-            result["user"] = json.loads(pairs["user"])
-        except json.JSONDecodeError as e:
-            current_app.logger.error(f"Failed to parse user JSON: {e}")
-            return None
-    
-    # Parse chat data (for group chats)
-    if "chat" in pairs:
-        try:
-            result["chat"] = json.loads(pairs["chat"])
-        except json.JSONDecodeError as e:
-            current_app.logger.error(f"Failed to parse chat JSON: {e}")
-            return None
-    
-    # Other fields
-    if "chat_instance" in pairs:
-        result["chat_instance"] = pairs["chat_instance"]
-    if "chat_type" in pairs:
-        result["chat_type"] = pairs["chat_type"]
-    if "start_param" in pairs:
-        result["start_param"] = pairs["start_param"]
-    
+    for key in ("user", "chat"):
+        if key in pairs:
+            try:
+                result[key] = json.loads(pairs[key])
+            except json.JSONDecodeError:
+                return None
+
+    for key in ("chat_instance", "chat_type", "start_param"):
+        if key in pairs:
+            result[key] = pairs[key]
+
     return result
 
 
-def get_telegram_data() -> dict | None:
+def get_telegram_data() -> dict[str, Any] | None:
     """
-    Get and validate Telegram data from the current request.
+    Get validated Telegram data from request or session.
     
-    First checks for init_data in the request (form or query params).
-    If found and valid, stores in session for subsequent requests.
-    If not found, falls back to session-stored data.
+    Checks request params first, falls back to session-cached data.
     """
-    # Check form data first, then query params
     init_data = request.form.get("init_data") or request.args.get("init_data")
-    
     bot_token = current_app.config.get("TELEGRAM_BOT_TOKEN", "")
-    if not bot_token:
-        current_app.logger.error("TELEGRAM_BOT_TOKEN not configured!")
-        return None
     
+    if not bot_token:
+        current_app.logger.error("TELEGRAM_BOT_TOKEN not configured")
+        return None
+
     if init_data:
-        # Validate fresh init_data from request
-        telegram_data = validate_telegram_data(init_data, bot_token)
+        telegram_data = validate_init_data(init_data, bot_token)
         if telegram_data:
-            # Store validated data in session for subsequent requests
             session["telegram_data"] = telegram_data
             session["telegram_auth_time"] = time.time()
-            current_app.logger.debug("Stored telegram data in session")
             return telegram_data
-        else:
-            current_app.logger.warning("init_data validation failed")
-            return None
-    
-    # Fall back to session-stored data
+        return None
+
     if "telegram_data" in session:
-        # Check if session hasn't expired
         auth_time = session.get("telegram_auth_time", 0)
-        if time.time() - auth_time < SESSION_TIMEOUT:
-            current_app.logger.debug("Using telegram data from session")
+        if time.time() - auth_time < SESSION_TIMEOUT_SECONDS:
             return session["telegram_data"]
-        else:
-            current_app.logger.info("Session expired, clearing telegram data")
-            session.pop("telegram_data", None)
-            session.pop("telegram_auth_time", None)
-    
-    current_app.logger.warning(
-        f"No init_data found in request and no valid session. "
-        f"Form keys: {list(request.form.keys())}, "
-        f"Args keys: {list(request.args.keys())}"
-    )
+        session.pop("telegram_data", None)
+        session.pop("telegram_auth_time", None)
+
     return None
 
 
-def get_chat_id() -> int | None:
+def extract_chat_id(telegram_data: dict[str, Any]) -> int | None:
     """
     Extract chat_id from Telegram data.
     
-    For group chats, chat_id comes from start_param or the chat object.
-    For private chats, we use the user's telegram_id as chat_id.
-    
-    Priority order:
-    1. start_param (explicit reference to a group chat via direct link)
-    2. chat object with group/supergroup type
-    3. user's telegram_id (private chat fallback)
+    Priority: start_param > group chat > user's private chat
     """
-    telegram_data = g.get("telegram_data")
-    if not telegram_data:
-        return None
-    
-    # First check start_param - this is used when opening from group chat
-    # via a direct link (t.me/bot?startapp=chat_XXXXX)
-    # This takes priority because it's an explicit reference to a specific chat
     if "start_param" in telegram_data:
         param = telegram_data["start_param"]
-        # start_param format: "chat_<chat_id>"
         if param.startswith("chat_"):
             chat_id_str = param[5:]
             if chat_id_str.lstrip("-").isdigit():
                 return int(chat_id_str)
-    
-    # Check chat object - but only use it for group/supergroup chats
-    # When opened via direct link, the chat object may contain the user's
-    # private chat context, which we don't want to use for group games
+
     if "chat" in telegram_data:
         chat = telegram_data["chat"]
-        chat_type = chat.get("type", "")
-        # Only use chat object for actual group chats
-        if chat_type in ("group", "supergroup"):
+        if chat.get("type") in ("group", "supergroup"):
             return chat.get("id")
-    
-    # Private chat: use user's telegram_id
+
     if "user" in telegram_data:
         return telegram_data["user"].get("id")
-    
+
     return None
 
 
-def get_current_game() -> Game | None:
-    """Get the current game based on chat_id."""
-    chat_id = get_chat_id()
-    if not chat_id:
-        return None
-    
-    return Game.query.filter_by(chat_id=chat_id).first()
+def get_chat_id() -> int | None:
+    """Get chat_id from current request's Telegram data."""
+    telegram_data = g.get("telegram_data")
+    return extract_chat_id(telegram_data) if telegram_data else None
 
 
 def get_or_create_game(chat_id: int, host_telegram_id: int) -> Game:
-    """Get existing game or create a new one."""
+    """Get existing game or create a new one for the chat."""
     game = Game.query.filter_by(chat_id=chat_id).first()
-    
     if not game:
         game = Game(chat_id=chat_id, host_telegram_id=host_telegram_id)
         db.session.add(game)
         db.session.commit()
-    
     return game
+
+
+def get_or_create_player(game: Game, telegram_data: dict[str, Any]) -> Player:
+    """Get existing player or create a new one for the game."""
+    user = telegram_data["user"]
+    telegram_id = user["id"]
+
+    player = Player.query.filter_by(game_id=game.id, telegram_id=telegram_id).first()
+    if player:
+        return player
+
+    first_name = user.get("first_name", "")
+    last_name = user.get("last_name", "")
+    name = f"{first_name} {last_name}".strip() or user.get("username") or f"Player {telegram_id}"
+
+    player = Player(
+        game_id=game.id,
+        telegram_id=telegram_id,
+        name=name,
+        is_host=(telegram_id == game.host_telegram_id),
+    )
+    db.session.add(player)
+    db.session.commit()
+    return player
+
+
+def get_current_game() -> Game | None:
+    """Get the current game based on chat_id in request context."""
+    chat_id = get_chat_id()
+    return Game.query.filter_by(chat_id=chat_id).first() if chat_id else None
 
 
 def get_current_player() -> Player | None:
@@ -348,47 +179,15 @@ def get_current_player() -> Player | None:
     telegram_data = g.get("telegram_data")
     if not telegram_data or "user" not in telegram_data:
         return None
-    
+
     game = get_current_game()
     if not game:
         return None
-    
-    telegram_id = telegram_data["user"]["id"]
+
     return Player.query.filter_by(
         game_id=game.id,
-        telegram_id=telegram_id,
+        telegram_id=telegram_data["user"]["id"],
     ).first()
-
-
-def get_or_create_player(game: Game, telegram_data: dict) -> Player:
-    """Get existing player or create a new one."""
-    user = telegram_data["user"]
-    telegram_id = user["id"]
-    
-    player = Player.query.filter_by(
-        game_id=game.id,
-        telegram_id=telegram_id,
-    ).first()
-    
-    if not player:
-        # Build display name
-        first_name = user.get("first_name", "")
-        last_name = user.get("last_name", "")
-        name = f"{first_name} {last_name}".strip() or user.get("username", f"Player {telegram_id}")
-        
-        # Check if this player is the host
-        is_host = telegram_id == game.host_telegram_id
-        
-        player = Player(
-            game_id=game.id,
-            telegram_id=telegram_id,
-            name=name,
-            is_host=is_host,
-        )
-        db.session.add(player)
-        db.session.commit()
-    
-    return player
 
 
 def is_host() -> bool:
@@ -397,38 +196,102 @@ def is_host() -> bool:
     return player is not None and player.is_host
 
 
-def telegram_required(f):
-    """Decorator to require valid Telegram authentication."""
+def telegram_required(f: F) -> F:
+    """Decorator requiring valid Telegram authentication."""
     @wraps(f)
-    def decorated_function(*args, **kwargs):
+    def decorated(*args: Any, **kwargs: Any) -> Response | Any:
         telegram_data = get_telegram_data()
-        
         if not telegram_data:
-            current_app.logger.error(
-                f"Authorization failed for {request.path}. "
-                f"Method: {request.method}, "
-                f"Has init_data in form: {'init_data' in request.form}, "
-                f"Has init_data in args: {'init_data' in request.args}, "
-                f"Has session: {'telegram_data' in session}"
-            )
-            # Redirect to entry page to re-authenticate
-            from flask import redirect, url_for
             return redirect(url_for("main.entry"))
-        
-        # Store in Flask g object for access in route handlers
         g.telegram_data = telegram_data
-        
         return f(*args, **kwargs)
-    
-    return decorated_function
+    return decorated  # type: ignore[return-value]
 
 
-def host_required(f):
-    """Decorator to require host privileges."""
+def host_required(f: F) -> F:
+    """Decorator requiring host privileges (must be used after telegram_required)."""
     @wraps(f)
-    def decorated_function(*args, **kwargs):
+    def decorated(*args: Any, **kwargs: Any) -> Response | tuple[str, int] | Any:
         if not is_host():
             return "Forbidden: Host access required", 403
         return f(*args, **kwargs)
+    return decorated  # type: ignore[return-value]
+
+
+def game_context_required(f: F) -> F:
+    """
+    Decorator that loads game and player into g object.
     
-    return decorated_function
+    Must be used after @telegram_required.
+    Sets g.game and g.player for use in route handlers.
+    """
+    @wraps(f)
+    def decorated(*args: Any, **kwargs: Any) -> Response | tuple[str, int] | Any:
+        chat_id = get_chat_id()
+        if not chat_id:
+            return "Could not determine chat", 400
+
+        telegram_data = g.telegram_data
+        g.game = get_or_create_game(chat_id, telegram_data["user"]["id"])
+        g.player = get_or_create_player(g.game, telegram_data)
+        return f(*args, **kwargs)
+    return decorated  # type: ignore[return-value]
+
+
+def _get_bot_username(bot_token: str) -> str | None:
+    """Fetch bot username from Telegram API."""
+    try:
+        response = requests.get(
+            f"https://api.telegram.org/bot{bot_token}/getMe",
+            timeout=TELEGRAM_API_TIMEOUT,
+        )
+        result = response.json()
+        if result.get("ok"):
+            return result["result"].get("username")
+    except requests.RequestException as e:
+        current_app.logger.error(f"Error getting bot info: {e}")
+    return None
+
+
+def send_webapp_button(chat_id: int, bot_token: str, app_url: str, *, is_group: bool = True) -> bool:
+    """Send a message with WebApp button to a Telegram chat."""
+    if not bot_token or not app_url:
+        return False
+
+    app_url = app_url.rstrip("/")
+
+    if is_group:
+        bot_username = _get_bot_username(bot_token)
+        if not bot_username:
+            return False
+        start_link = f"https://t.me/{bot_username}?startapp=chat_{chat_id}"
+        keyboard = {"inline_keyboard": [[{"text": "🎮 Play New Year Jeopardy!", "url": start_link}]]}
+    else:
+        keyboard = {"inline_keyboard": [[{"text": "🎮 Play New Year Jeopardy!", "web_app": {"url": app_url}}]]}
+
+    message_text = (
+        "🎆 *New Year Jeopardy Party Game* 🎆\n\n"
+        "Welcome! I'm here to host a fun Jeopardy-style party game.\n\n"
+        "📋 *How to play:*\n"
+        "1. Each player creates their own questions\n"
+        "2. Take turns answering each other's questions\n"
+        "3. Earn points for correct answers\n"
+        "4. Most points wins! 🏆\n\n"
+        f"Click the button below to {'join this game!' if is_group else 'open the game!'}"
+    )
+
+    try:
+        response = requests.post(
+            f"https://api.telegram.org/bot{bot_token}/sendMessage",
+            json={
+                "chat_id": chat_id,
+                "text": message_text,
+                "parse_mode": "Markdown",
+                "reply_markup": json.dumps(keyboard),
+            },
+            timeout=TELEGRAM_API_TIMEOUT,
+        )
+        return response.status_code == 200 and response.json().get("ok", False)
+    except requests.RequestException as e:
+        current_app.logger.error(f"Error sending message to chat {chat_id}: {e}")
+        return False

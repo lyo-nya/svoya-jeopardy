@@ -1,22 +1,24 @@
-"""SQLAlchemy models for New Year Jeopardy Party Game."""
+"""SQLAlchemy models for the Jeopardy game."""
+
+from __future__ import annotations
 
 from datetime import datetime
+
 from app import db
 
 
 class Game(db.Model):
-    """Represents a Jeopardy game session for a Telegram chat."""
+    """A Jeopardy game session for a Telegram chat."""
 
     __tablename__ = "games"
 
     id = db.Column(db.Integer, primary_key=True)
     chat_id = db.Column(db.BigInteger, nullable=False, unique=True)
     host_telegram_id = db.Column(db.BigInteger, nullable=False)
-    status = db.Column(db.String(20), default="setup")  # setup, in_progress, completed
+    status = db.Column(db.String(20), default="setup")
     current_round_id = db.Column(db.Integer, db.ForeignKey("rounds.id"), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relationships
     players = db.relationship("Player", back_populates="game", lazy="dynamic")
     rounds = db.relationship(
         "Round",
@@ -25,12 +27,12 @@ class Game(db.Model):
         foreign_keys="Round.game_id",
     )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Game {self.id} chat={self.chat_id} status={self.status}>"
 
 
 class Player(db.Model):
-    """Represents a player in the game."""
+    """A player in the game."""
 
     __tablename__ = "players"
 
@@ -42,30 +44,27 @@ class Player(db.Model):
     total_score = db.Column(db.Integer, default=0)
     questions_submitted = db.Column(db.Boolean, default=False)
 
-    # Unique constraint: one player per telegram_id per game
     __table_args__ = (db.UniqueConstraint("game_id", "telegram_id"),)
 
-    # Relationships
     game = db.relationship("Game", back_populates="players")
     categories = db.relationship("Category", back_populates="player", lazy="dynamic")
     rounds = db.relationship("Round", back_populates="player", lazy="dynamic")
     round_scores = db.relationship("RoundScore", back_populates="player", lazy="dynamic")
 
-    def __repr__(self):
-        return f"<Player {self.id} name={self.name} telegram_id={self.telegram_id}>"
+    def __repr__(self) -> str:
+        return f"<Player {self.id} name={self.name}>"
 
 
 class Category(db.Model):
-    """Represents a category of questions created by a player."""
+    """A category of questions created by a player."""
 
     __tablename__ = "categories"
 
     id = db.Column(db.Integer, primary_key=True)
     player_id = db.Column(db.Integer, db.ForeignKey("players.id"), nullable=False)
     name = db.Column(db.String(100), nullable=False)
-    position = db.Column(db.Integer, nullable=False)  # 0-3
+    position = db.Column(db.Integer, nullable=False)
 
-    # Relationships
     player = db.relationship("Player", back_populates="categories")
     questions = db.relationship(
         "Question",
@@ -74,12 +73,12 @@ class Category(db.Model):
         order_by="Question.points",
     )
 
-    def __repr__(self):
-        return f"<Category {self.id} name={self.name} position={self.position}>"
+    def __repr__(self) -> str:
+        return f"<Category {self.id} name={self.name}>"
 
 
 class Question(db.Model):
-    """Represents a single question in a category."""
+    """A single question in a category."""
 
     __tablename__ = "questions"
 
@@ -87,38 +86,34 @@ class Question(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=False)
     text = db.Column(db.Text, nullable=False)
     answer = db.Column(db.Text, nullable=False)
-    points = db.Column(db.Integer, nullable=False)  # 100, 200, 300, 400, 500
+    points = db.Column(db.Integer, nullable=False)
     image_path = db.Column(db.String(255), nullable=True)
     is_answered = db.Column(db.Boolean, default=False)
-    answered_by_player_id = db.Column(
-        db.Integer, db.ForeignKey("players.id"), nullable=True
-    )
+    answered_by_player_id = db.Column(db.Integer, db.ForeignKey("players.id"), nullable=True)
 
-    # Relationships
     category = db.relationship("Category", back_populates="questions")
     answered_by = db.relationship("Player", foreign_keys=[answered_by_player_id])
 
-    def __repr__(self):
-        return f"<Question {self.id} points={self.points} answered={self.is_answered}>"
+    def __repr__(self) -> str:
+        return f"<Question {self.id} points={self.points}>"
 
 
 class Round(db.Model):
-    """Represents a round of the game (one player's question set)."""
+    """A round of the game (one player's question set)."""
 
     __tablename__ = "rounds"
 
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=False)
     player_id = db.Column(db.Integer, db.ForeignKey("players.id"), nullable=False)
-    status = db.Column(db.String(20), default="pending")  # pending, in_progress, completed
+    status = db.Column(db.String(20), default="pending")
     round_number = db.Column(db.Integer, nullable=False)
 
-    # Relationships
     game = db.relationship("Game", back_populates="rounds", foreign_keys=[game_id])
     player = db.relationship("Player", back_populates="rounds")
     round_scores = db.relationship("RoundScore", back_populates="round", lazy="dynamic")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Round {self.id} player={self.player_id} status={self.status}>"
 
 
@@ -132,12 +127,10 @@ class RoundScore(db.Model):
     player_id = db.Column(db.Integer, db.ForeignKey("players.id"), nullable=False)
     score = db.Column(db.Integer, default=0)
 
-    # Unique constraint: one score per player per round
     __table_args__ = (db.UniqueConstraint("round_id", "player_id"),)
 
-    # Relationships
     round = db.relationship("Round", back_populates="round_scores")
     player = db.relationship("Player", back_populates="round_scores")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<RoundScore round={self.round_id} player={self.player_id} score={self.score}>"
