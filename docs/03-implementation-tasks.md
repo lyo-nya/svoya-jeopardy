@@ -27,12 +27,10 @@ This document breaks down the implementation into concrete tasks. Estimated tota
 - [ ] Create database initialization script
 - [ ] Test database creation and basic operations
 
-### Task 1.3: Docker Setup
-- [ ] Create `Dockerfile` for Flask app
-- [ ] Create `docker-compose.yml` with app + nginx services
-- [ ] Create `nginx.conf` for reverse proxy
-- [ ] Create `gunicorn.conf.py` configuration
-- [ ] Test local Docker build and run
+### Task 1.3: Railway Setup
+- [ ] Create `Procfile` for Gunicorn
+- [ ] Create `railway.toml` for build config
+- [ ] Configure for persistent volume (SQLite + uploads)
 
 ---
 
@@ -226,31 +224,25 @@ This document breaks down the implementation into concrete tasks. Estimated tota
 
 ---
 
-## Phase 9: Deployment (1-2 hours)
+## Phase 9: Deployment (30 min)
 
-### Task 9.1: GitHub Actions CI/CD
-- [ ] Create `.github/workflows/deploy.yml`
-- [ ] Setup SSH key secrets
-- [ ] Build Docker image on push to main
-- [ ] Deploy to EC2
+### Task 9.1: Deploy to Railway
+- [ ] Create Railway account and project
+- [ ] Connect GitHub repository
+- [ ] Add environment variables (bot token, secret key)
+- [ ] Attach persistent volume for data
+- [ ] Deploy and get public URL
 
-### Task 9.2: EC2 Server Setup
-- [ ] Install Docker and Docker Compose
-- [ ] Configure domain/subdomain
-- [ ] Setup Let's Encrypt SSL
-- [ ] Configure nginx
-- [ ] Open required ports (80, 443)
-
-### Task 9.3: Telegram Bot Configuration
-- [ ] Set Mini App URL in BotFather
+### Task 9.2: Telegram Bot Configuration
+- [ ] Set Mini App URL in BotFather (use Railway URL)
+- [ ] Register webhook URL
 - [ ] Configure menu button
 - [ ] Test opening from Telegram
 
-### Task 9.4: Final Verification
+### Task 9.3: Final Verification
 - [ ] Complete end-to-end test on production
-- [ ] Verify SSL certificate
-- [ ] Check error logging
-- [ ] Backup plan for database
+- [ ] Verify all players can access
+- [ ] Test image upload
 
 ---
 
@@ -266,8 +258,8 @@ This document breaks down the implementation into concrete tasks. Estimated tota
 | 6. Game Board & Gameplay | 6 | 3-4h |
 | 7. Scores & Results | 2 | 1h |
 | 8. Polish & Testing | 4 | 1-2h |
-| 9. Deployment | 4 | 1-2h |
-| **Total** | **31 tasks** | **12-16h** |
+| 9. Deployment | 3 | 30min |
+| **Total** | **29 tasks** | **11-14h** |
 
 ---
 

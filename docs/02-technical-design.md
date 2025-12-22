@@ -17,12 +17,7 @@
                               │ HTTPS
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                      AWS EC2 Instance                        │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │              Caddy (Reverse Proxy + Auto-SSL)        │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                              │                              │
-│                              ▼                              │
+│                         Railway                              │
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │              Python Flask Application                │   │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌────────────┐  │   │
@@ -32,8 +27,8 @@
 │                              │                              │
 │                              ▼                              │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │                 SQLite Database                      │   │
-│  │                 + Image Storage (filesystem)         │   │
+│  │           Railway Persistent Volume                  │   │
+│  │         (SQLite DB + Uploaded Images)                │   │
 │  └─────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -47,10 +42,8 @@
 | Backend | Flask (Python) | Simple, readable, great for SSR |
 | Database | SQLite | Simple, no separate server needed |
 | File Storage | Local filesystem | Simple, adequate for 5 users |
-| Web Server | Caddy | Auto-SSL, reverse proxy |
 | Process Manager | Gunicorn | Production-ready WSGI server |
-| Containerization | Docker + Docker Compose | Easy deployment |
-| CI/CD | GitHub Actions | Auto-deploy on push to main |
+| Hosting | Railway | Free tier, auto-deploy, managed SSL |
 
 ## Data Models
 
@@ -425,9 +418,8 @@ jeopardy/
 ├── tests/
 │   └── ...
 ├── requirements.txt
-├── Dockerfile
-├── docker-compose.yml
-├── Caddyfile
+├── Procfile
+├── railway.toml
 └── README.md
 ```
 

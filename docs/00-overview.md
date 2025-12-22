@@ -37,8 +37,7 @@ A Telegram Mini App for playing Jeopardy-style trivia at your New Year's Eve par
 | Frontend | Jinja2 templates + CSS (SSR) |
 | Backend | Python Flask |
 | Database | SQLite |
-| Hosting | AWS EC2 + Docker + Nginx |
-| CI/CD | GitHub Actions |
+| Hosting | Railway (free tier, auto-deploy) |
 
 ## 📊 Key Specifications
 
@@ -53,7 +52,7 @@ A Telegram Mini App for playing Jeopardy-style trivia at your New Year's Eve par
 
 **Party Date**: December 31st, 2025
 
-**Estimated Development Time**: 12-16 hours
+**Estimated Development Time**: 11-14 hours
 
 | Phase | Time |
 |-------|------|
@@ -65,7 +64,7 @@ A Telegram Mini App for playing Jeopardy-style trivia at your New Year's Eve par
 | Gameplay | 3-4h |
 | Scores & Results | 1h |
 | Polish & Testing | 1-2h |
-| Deployment | 1-2h |
+| Deployment | 30min |
 
 ## 🎨 Theme
 
@@ -91,12 +90,8 @@ jeopardy/
 │   ├── services/
 │   ├── static/
 │   └── templates/
-├── uploads/
-├── instance/
-├── .github/workflows/
-├── Dockerfile
-├── docker-compose.yml
-├── nginx.conf
+├── Procfile
+├── railway.toml
 └── requirements.txt
 ```
 
