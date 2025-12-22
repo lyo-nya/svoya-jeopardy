@@ -346,3 +346,97 @@ def save_category(pos: int):
         flash("Произошла ошибка. Попробуйте ещё раз.", "error")
 
     return redirect(url_for("setup.setup_overview"))
+
+
+@setup_bp.route("/category/<int:pos>/delete", methods=["POST"])
+@telegram_required
+@game_context_required
+def delete_category(pos: int):
+    """Delete a category and all its questions."""
+    if not (0 <= pos < CATEGORIES_PER_PLAYER):
+        flash("Неверная позиция категории", "error")
+        return redirect(url_for("setup.setup_overview"))
+
+    game, player = g.game, g.player
+
+    if game.status != "setup":
+        flash("Игра уже началась. Редактирование вопросов недоступно.", "error")
+        return redirect(url_for("main.lobby"))
+
+    try:
+        category = Category.query.filter_by(player_id=player.id, position=pos).first()
+        if category:
+            category_name = category.name
+            # Delete all question images first
+            for question in category.questions:
+                if question.image_path:
+                    _delete_image(question.image_path)
+            # Delete all questions
+            Question.query.filter_by(category_id=category.id).delete()
+            # Delete the category
+            db.session.delete(category)
+            db.session.commit()
+
+            _update_questions_submitted(player.id)
+            db.session.commit()
+
+            flash(f"Категория «{category_name}» удалена", "success")
+        else:
+            flash("Категория не найдена", "error")
+
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Database error deleting category: {e}")
+        flash("Произошла ошибка при удалении. Попробуйте ещё раз.", "error")
+
+    return redirect(url_for("setup.setup_overview"))
+
+
+@setup_bp.route("/category/<int:pos>/question/<int:step>/delete", methods=["POST"])
+@telegram_required
+@game_context_required
+def delete_question(pos: int, step: int):
+    """Delete a single question from a category."""
+    if not (0 <= pos < CATEGORIES_PER_PLAYER):
+        flash("Неверная позиция категории", "error")
+        return redirect(url_for("setup.setup_overview"))
+
+    if not (1 <= step <= QUESTIONS_PER_CATEGORY):
+        flash("Неверный номер вопроса", "error")
+        return redirect(url_for("setup.edit_category_step", pos=pos, step=0))
+
+    game, player = g.game, g.player
+
+    if game.status != "setup":
+        flash("Игра уже началась. Редактирование вопросов недоступно.", "error")
+        return redirect(url_for("main.lobby"))
+
+    try:
+        category = Category.query.filter_by(player_id=player.id, position=pos).first()
+        if not category:
+            flash("Категория не найдена", "error")
+            return redirect(url_for("setup.setup_overview"))
+
+        points = POINT_VALUES[step - 1]
+        question = Question.query.filter_by(category_id=category.id, points=points).first()
+
+        if question:
+            # Delete image if exists
+            if question.image_path:
+                _delete_image(question.image_path)
+            db.session.delete(question)
+            db.session.commit()
+
+            _update_questions_submitted(player.id)
+            db.session.commit()
+
+            flash(f"Вопрос за {points} очков удалён", "success")
+        else:
+            flash("Вопрос не найден", "error")
+
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Database error deleting question: {e}")
+        flash("Произошла ошибка при удалении. Попробуйте ещё раз.", "error")
+
+    return redirect(url_for("setup.edit_category_step", pos=pos, step=step))

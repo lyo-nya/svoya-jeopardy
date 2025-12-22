@@ -296,6 +296,18 @@ p {
     background: linear-gradient(180deg, #4a4a5a 0%, #3a3a4a 100%);
 }
 
+.btn-delete {
+    background: linear-gradient(180deg, #5a2020 0%, #3d1515 100%);
+    border-color: var(--accent-red);
+    color: #e88a8a;
+}
+
+.btn-delete:hover {
+    background: linear-gradient(180deg, #7a2a2a 0%, #5a2020 100%);
+    border-color: #ff4444;
+    color: #fff;
+}
+
 .btn-save {
     width: 100%;
     padding: 14px;
@@ -343,6 +355,17 @@ p {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
+}
+
+.category-header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.delete-form {
+    display: inline;
+    margin: 0;
 }
 
 .category-position {
@@ -1654,6 +1677,13 @@ hr {
 .wizard-finish {
     text-align: center;
     padding-top: 16px;
+    border-top: 1px solid var(--border-blue);
+}
+
+.delete-question-section {
+    text-align: center;
+    padding-top: 16px;
+    margin-top: 16px;
     border-top: 1px solid var(--border-blue);
 }
 
