@@ -7,6 +7,12 @@ from app.models import Game
 from app.services.telegram import send_webapp_button
 
 
+@webhook_bp.route("/", methods=["GET"])
+def webhook_test():
+    """Test endpoint to verify webhook URL is reachable."""
+    return "Webhook endpoint is working!", 200
+
+
 @webhook_bp.route("/", methods=["POST"])
 def telegram_webhook():
     """
