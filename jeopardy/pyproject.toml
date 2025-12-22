@@ -13,6 +13,3 @@ dependencies = [
 
 [project.scripts]
 start = "gunicorn:main"
-
-[tool.railpack]
-start = "gunicorn --bind 0.0.0.0:$PORT 'app:create_app()'"

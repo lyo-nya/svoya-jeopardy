@@ -2,118 +2,116 @@
 
 ## Overview
 
-We'll deploy to **Railway**, which provides:
-- Free HTTPS subdomain (`*.railway.app`)
-- Auto-deploy on push to GitHub
-- Persistent storage for SQLite and uploaded images
-- Zero server configuration
+We'll deploy to **Fly.io**, which provides:
+- Free HTTPS subdomain (`*.fly.dev`)
+- Auto-deploy with GitHub Actions (optional)
+- Persistent volumes for SQLite and uploaded images
+- Global edge deployment
+- Automatic SSL certificates
 
-**Total deployment time: ~30 minutes**
+**Total deployment time: ~20 minutes**
 
 ---
 
 ## Prerequisites
 
-- GitHub account with the code repository
-- Railway account (free, sign up with GitHub)
+- Fly.io account (free, sign up at [fly.io](https://fly.io))
+- Fly CLI installed (`flyctl`)
 - Telegram Bot token (from @BotFather)
 
 ---
 
-## Part 1: Prepare Repository
+## Part 1: Install Fly CLI
 
-### 1.1 Required Files
+### macOS
 
-Make sure your repository has these files:
-
-
-**`pyproject.toml`** (dependencies managed by uv):
-```toml
-[project]
-name = "jeopardy"
-version = "0.1.0"
-requires-python = ">=3.11"
-dependencies = [
-    "flask",
-    "flask-sqlalchemy",
-    "gunicorn",
-    "pillow",
-]
-
-[project.scripts]
-start = "gunicorn app:create_app()"
+```bash
+brew install flyctl
 ```
 
-Railpack will automatically detect uv (via `uv.lock`) and use it to install dependencies.
+### Linux
 
-### 1.2 Configure for Persistent Volume
+```bash
+curl -L https://fly.io/install.sh | sh
+```
 
-Update your Flask config to use Railway's volume mount path:
+### Windows
 
-```python
-# config.py
-import os
+```powershell
+pwsh -Command "iwr https://fly.io/install.ps1 -useb | iex"
+```
 
-class Config:
-    SECRET_KEY = os.environ['SECRET_KEY']
-    TELEGRAM_BOT_TOKEN = os.environ['TELEGRAM_BOT_TOKEN']
-    
-    # Use Railway volume path
-    DATA_DIR = os.environ.get('RAILWAY_VOLUME_MOUNT_PATH', '/data')
-    SQLALCHEMY_DATABASE_URI = f"sqlite:///{DATA_DIR}/jeopardy.db"
-    UPLOAD_FOLDER = f"{DATA_DIR}/uploads"
-    MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MB
+After installation, log in:
+
+```bash
+fly auth login
 ```
 
 ---
 
-## Part 2: Deploy to Railway
+## Part 2: Deploy to Fly.io
 
-### 2.1 Create Railway Account
+### 2.1 Navigate to Project Directory
 
-1. Go to [railway.app](https://railway.app)
-2. Click "Login" → "Login with GitHub"
-3. Authorize Railway
+```bash
+cd jeopardy
+```
 
-### 2.2 Create New Project
+### 2.2 Launch the App
 
-1. Click "New Project"
-2. Select "Deploy from GitHub repo"
-3. Select your jeopardy repository
-4. Click "Deploy Now"
+Run the launch command (this will use the existing `fly.toml`):
 
-Railway will automatically detect Python and start building.
+```bash
+fly launch --no-deploy
+```
 
-### 2.3 Add Environment Variables
+When prompted:
+- **App name**: Choose a unique name (e.g., `my-jeopardy-game`) or accept the generated one
+- **Region**: Select the region closest to your users (e.g., `ams` for Amsterdam, `lhr` for London)
+- **Would you like to set up a PostgreSQL database?**: No
+- **Would you like to set up Redis?**: No
 
-1. Click on your deployed service
-2. Go to "Variables" tab
-3. Add the following:
+### 2.3 Create Persistent Volume
 
-| Variable | Value |
-|----------|-------|
-| `SECRET_KEY` | (generate random: `python -c "import secrets; print(secrets.token_hex(32))"`) |
-| `TELEGRAM_BOT_TOKEN` | Your bot token from BotFather |
+Create a volume for the SQLite database and uploaded images:
 
-### 2.4 Add Persistent Volume
+```bash
+fly volumes create jeopardy_data --region ams --size 1
+```
 
-This keeps your SQLite database and uploaded images safe across deploys:
+> **Note**: Replace `ams` with your chosen region. The volume name `jeopardy_data` must match the `source` in `fly.toml`.
 
-1. Click on your service
-2. Go to "Volumes" tab
-3. Click "Add Volume"
-4. Set mount path: `/data`
-5. Click "Add"
+### 2.4 Set Environment Variables (Secrets)
 
-Railway will redeploy with the volume attached.
+```bash
+# Generate a secure secret key
+fly secrets set SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_hex(32))")
 
-### 2.5 Get Your Public URL
+# Set your Telegram bot token
+fly secrets set TELEGRAM_BOT_TOKEN="your-bot-token-here"
+```
 
-1. Go to "Settings" tab
-2. Under "Networking", click "Generate Domain"
-3. You'll get a URL like: `jeopardy-production-abc123.up.railway.app`
+### 2.5 Deploy the App
 
-Save this URL - you'll need it for Telegram!
+```bash
+fly deploy
+```
+
+This will:
+1. Build the Docker image
+2. Push it to Fly.io's registry
+3. Deploy to your selected region
+4. Mount the persistent volume
+
+### 2.6 Get Your Public URL
+
+After deployment, get your app URL:
+
+```bash
+fly status
+```
+
+Your app will be available at: `https://your-app-name.fly.dev`
 
 ---
 
@@ -123,20 +121,20 @@ Save this URL - you'll need it for Telegram!
 
 1. Open Telegram, go to @BotFather
 2. Send `/mybots`
-3. Select `@svoya_jeopardy_bot`
+3. Select your bot
 4. Select "Bot Settings"
 5. Select "Menu Button" → "Configure menu button"
-6. Enter your Railway URL: `https://your-app.up.railway.app`
+6. Enter your Fly.io URL: `https://your-app-name.fly.dev`
 7. Enter button text: `🎮 Play Jeopardy`
 
 ### 3.2 Register Webhook
 
-Set up the webhook so your bot receives updates when added to groups:
+Set up the webhook so your bot receives updates:
 
 ```bash
 curl -X POST "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook" \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://your-app.up.railway.app/webhook"}'
+  -d '{"url": "https://your-app-name.fly.dev/webhook"}'
 ```
 
 Verify it's set:
@@ -153,23 +151,49 @@ curl "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getWebhookInfo"
 
 ---
 
-## Part 4: Auto-Deploy Setup
+## Part 4: Auto-Deploy with GitHub Actions (Optional)
 
-Railway automatically deploys when you push to your connected branch (usually `main`).
+### 4.1 Get Fly.io API Token
 
-### Workflow
+```bash
+fly tokens create deploy -x 999999h
+```
 
-1. Make changes locally
-2. `git push origin main`
-3. Railway detects the push and redeploys (~1-2 minutes)
-4. Your changes are live!
+Copy the token output.
 
-### View Deploy Logs
+### 4.2 Add GitHub Secret
 
-1. Go to Railway dashboard
-2. Click your service
-3. Click "Deployments" tab
-4. Click any deployment to see logs
+1. Go to your GitHub repository
+2. Settings → Secrets and variables → Actions
+3. Click "New repository secret"
+4. Name: `FLY_API_TOKEN`
+5. Value: Paste your token
+
+### 4.3 Create GitHub Actions Workflow
+
+Create `.github/workflows/fly.yml`:
+
+```yaml
+name: Fly Deploy
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --remote-only
+        working-directory: ./jeopardy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+```
+
+Now every push to `main` will automatically deploy!
 
 ---
 
@@ -177,32 +201,55 @@ Railway automatically deploys when you push to your connected branch (usually `m
 
 ### View Application Logs
 
-1. Go to Railway dashboard
-2. Click your service
-3. Click "Logs" tab (real-time logs)
+```bash
+fly logs
+```
+
+Or stream logs in real-time:
+
+```bash
+fly logs --app your-app-name
+```
+
+### Check App Status
+
+```bash
+fly status
+```
 
 ### Restart Application
 
-1. Go to Railway dashboard
-2. Click your service
-3. Click "Deployments" tab
-4. Click "Redeploy" on the latest deployment
+```bash
+fly apps restart
+```
 
-### Access Database (if needed)
+### SSH into the Machine
 
-You can connect to your app's shell:
+```bash
+fly ssh console
+```
 
-1. Install Railway CLI: `npm install -g @railway/cli`
-2. Login: `railway login`
-3. Link project: `railway link`
-4. Open shell: `railway shell`
-5. Access SQLite: `sqlite3 /data/jeopardy.db`
+### Access Database
+
+```bash
+fly ssh console -C "sqlite3 /data/data/jeopardy.db"
+```
 
 ### Backup Database
 
 ```bash
-# Using Railway CLI
-railway run cat /data/jeopardy.db > backup.db
+# Download the database file
+fly ssh sftp get /data/data/jeopardy.db ./backup.db
+```
+
+### Scale the App
+
+```bash
+# Scale to 2 machines
+fly scale count 2
+
+# Change VM size
+fly scale vm shared-cpu-2x
 ```
 
 ---
@@ -211,9 +258,9 @@ railway run cat /data/jeopardy.db > backup.db
 
 ### App Not Loading
 
-1. Check deployment logs in Railway dashboard
-2. Look for Python errors in the "Logs" tab
-3. Verify environment variables are set
+1. Check logs: `fly logs`
+2. Check status: `fly status`
+3. Verify secrets are set: `fly secrets list`
 
 ### Webhook Not Working
 
@@ -223,38 +270,54 @@ curl "https://api.telegram.org/bot<TOKEN>/getWebhookInfo"
 
 # Re-register if needed
 curl -X POST "https://api.telegram.org/bot<TOKEN>/setWebhook" \
-  -d '{"url": "https://your-app.up.railway.app/webhook"}'
+  -d '{"url": "https://your-app-name.fly.dev/webhook"}'
 ```
 
-### Images Not Persisting
+### Volume Issues
 
-Make sure:
-1. Volume is attached (check "Volumes" tab)
-2. App is saving to `/data/uploads` (the volume mount path)
-3. `RAILWAY_VOLUME_MOUNT_PATH` env var is set automatically by Railway
+```bash
+# List volumes
+fly volumes list
+
+# Check volume is attached
+fly status
+```
 
 ### Database Reset
 
 If you need to start fresh:
 
 ```bash
-railway shell
-rm /data/jeopardy.db
+fly ssh console
+rm /data/data/jeopardy.db
 exit
-# Redeploy to recreate database
+fly apps restart
+```
+
+### Deploy Failures
+
+```bash
+# View recent deployments
+fly releases
+
+# View specific release
+fly releases show v1
 ```
 
 ---
 
 ## Quick Reference
 
-| Task | How |
-|------|-----|
-| View logs | Railway Dashboard → Service → Logs |
-| Redeploy | Railway Dashboard → Deployments → Redeploy |
-| Add env var | Railway Dashboard → Variables → Add |
-| View URL | Railway Dashboard → Settings → Domains |
-| CLI shell | `railway shell` |
+| Task | Command |
+|------|---------|
+| View logs | `fly logs` |
+| App status | `fly status` |
+| Deploy | `fly deploy` |
+| Restart | `fly apps restart` |
+| SSH access | `fly ssh console` |
+| List secrets | `fly secrets list` |
+| Set secret | `fly secrets set KEY=value` |
+| Scale | `fly scale count N` |
 
 ---
 
@@ -264,4 +327,35 @@ exit
 |----------|-------------|---------|
 | `SECRET_KEY` | Flask secret key | `abc123...` (random hex) |
 | `TELEGRAM_BOT_TOKEN` | Bot token from BotFather | `123456:ABC-DEF...` |
-| `RAILWAY_VOLUME_MOUNT_PATH` | Auto-set by Railway | `/data` |
+| `FLY_APP_NAME` | Auto-set by Fly.io | `my-jeopardy-game` |
+| `FLY_VOLUME_PATH` | Volume mount path (default `/data`) | `/data` |
+
+---
+
+## Cost Estimation
+
+Fly.io's free tier includes:
+- 3 shared-cpu-1x VMs (256MB RAM each)
+- 3GB persistent storage total
+- 160GB outbound bandwidth
+
+For a small party game app, you'll likely stay within the free tier.
+
+Paid usage (if needed):
+- Shared CPU: ~$1.94/month per 256MB VM
+- Volumes: ~$0.15/GB/month
+- Bandwidth: $0.02/GB after free tier
+
+---
+
+## Comparison: Fly.io vs Railway
+
+| Feature | Fly.io | Railway |
+|---------|--------|---------|
+| Free tier | ✅ Generous | ⚠️ Limited for apps |
+| Persistent storage | ✅ Volumes | ✅ Volumes |
+| Auto HTTPS | ✅ | ✅ |
+| Global regions | ✅ 30+ regions | ✅ Limited |
+| CLI | ✅ Excellent | ✅ Good |
+| GitHub integration | ✅ Actions | ✅ Native |
+| Container support | ✅ Native | ✅ Native |

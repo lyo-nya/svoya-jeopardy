@@ -15,7 +15,7 @@ A Telegram Mini App for playing Jeopardy-style trivia at your New Year's Eve par
 - **Backend**: Python Flask
 - **Database**: SQLite
 - **Frontend**: Jinja2 templates + CSS
-- **Hosting**: Railway
+- **Hosting**: Fly.io
 
 ## Development Setup
 
