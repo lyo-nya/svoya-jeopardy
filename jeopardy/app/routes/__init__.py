@@ -6,6 +6,7 @@ from flask import Blueprint
 main_bp = Blueprint("main", __name__)
 setup_bp = Blueprint("setup", __name__)
 game_bp = Blueprint("game", __name__)
+webhook_bp = Blueprint("webhook", __name__)
 
 # Import routes to register them with blueprints
-from app.routes import main, setup, game
+from app.routes import main, setup, game, webhook

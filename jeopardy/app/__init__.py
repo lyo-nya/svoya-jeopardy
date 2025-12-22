@@ -32,10 +32,11 @@ def create_app(config_name=None):
     from app import models  # noqa: F401
 
     # Register blueprints
-    from app.routes import main_bp, setup_bp, game_bp
+    from app.routes import main_bp, setup_bp, game_bp, webhook_bp
     app.register_blueprint(main_bp)
     app.register_blueprint(setup_bp, url_prefix="/setup")
     app.register_blueprint(game_bp, url_prefix="/game")
+    app.register_blueprint(webhook_bp, url_prefix="/webhook")
 
     # Create database tables
     with app.app_context():
