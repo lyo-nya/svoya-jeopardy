@@ -4,6 +4,7 @@ from flask import request, current_app
 from app.routes import webhook_bp
 from app import db
 from app.models import Game
+from app.services.telegram import send_webapp_button
 
 
 @webhook_bp.route("/", methods=["POST"])
@@ -19,11 +20,48 @@ def telegram_webhook():
     if not data:
         return "OK", 200
     
+    current_app.logger.info(f"Received webhook update: {data.get('update_id')}")
+    
     # Handle my_chat_member update (bot added/removed from chat)
     if "my_chat_member" in data:
         handle_my_chat_member(data["my_chat_member"])
     
+    # Handle /start command in private chat
+    if "message" in data:
+        handle_message(data["message"])
+    
     return "OK", 200
+
+
+def handle_message(message: dict):
+    """Handle incoming messages, particularly /start command."""
+    chat = message.get("chat", {})
+    chat_id = chat.get("id")
+    chat_type = chat.get("type")
+    text = message.get("text", "")
+    from_user = message.get("from", {})
+    from_user_id = from_user.get("id")
+    
+    # Handle /start command in private chat
+    if chat_type == "private" and text.startswith("/start"):
+        bot_token = current_app.config.get("TELEGRAM_BOT_TOKEN", "")
+        app_url = current_app.config.get("APP_URL", "")
+        
+        if bot_token and app_url:
+            # Check if there's a start parameter (e.g., /start chat_-123456)
+            parts = text.split()
+            start_param = parts[1] if len(parts) > 1 else None
+            
+            # Create or get game for private chat
+            game = Game.query.filter_by(chat_id=chat_id).first()
+            if not game:
+                game = Game(chat_id=chat_id, host_telegram_id=from_user_id)
+                db.session.add(game)
+                db.session.commit()
+            
+            # Send welcome message with WebApp button
+            send_webapp_button(chat_id, bot_token, app_url)
+            current_app.logger.info(f"Sent WebApp button to private chat {chat_id}")
 
 
 def handle_my_chat_member(update: dict):
@@ -71,3 +109,14 @@ def handle_my_chat_member(update: dict):
             current_app.logger.info(
                 f"Created game for chat {chat_id} with host {from_user_id}"
             )
+        
+        # Send welcome message with WebApp button to the group
+        bot_token = current_app.config.get("TELEGRAM_BOT_TOKEN", "")
+        app_url = current_app.config.get("APP_URL", "")
+        
+        if bot_token and app_url:
+            success = send_webapp_button(chat_id, bot_token, app_url)
+            if success:
+                current_app.logger.info(f"Sent WebApp button to group {chat_id}")
+            else:
+                current_app.logger.error(f"Failed to send WebApp button to group {chat_id}")

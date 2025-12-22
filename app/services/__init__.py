@@ -11,6 +11,7 @@ from app.services.telegram import (
     is_host,
     telegram_required,
     host_required,
+    send_webapp_button,
 )
 
 __all__ = [
@@ -24,4 +25,5 @@ __all__ = [
     "is_host",
     "telegram_required",
     "host_required",
+    "send_webapp_button",
 ]
