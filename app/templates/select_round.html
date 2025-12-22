@@ -40,12 +40,13 @@
 {% endif %}
 
 {% if completed_rounds %}
-<div class="current-standings">
+<div class="current-standings standings">
     <h3>Текущий счёт:</h3>
     {% for p in players_by_score %}
-        <div class="score-row">
-            <span>{{ p.name }}</span>
-            <span>{{ p.total_score }} очк.</span>
+        <div class="standing-row {% if loop.index == 1 %}first{% elif loop.index == 2 %}second{% elif loop.index == 3 %}third{% endif %}">
+            <span class="rank">{{ loop.index }}.</span>
+            <span class="name">{{ p.name }}</span>
+            <span class="score">{{ p.total_score }} очк.</span>
         </div>
     {% endfor %}
 </div>
