@@ -95,10 +95,61 @@ body::after {
     animation: twinkle 4s ease-in-out infinite alternate;
 }
 
-/* Game page optimized for large 1280x720 display */
+/* Game page optimized for large 1280x720 display - full viewport */
+.game-page {
+    height: 100vh;
+    overflow: hidden;
+}
+
 .game-page .container {
     max-width: 1260px;
     padding: 10px 20px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.game-page h1 {
+    flex-shrink: 0;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+}
+
+.game-page .game-board {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.game-page .category-row {
+    flex: 1;
+    display: grid;
+    min-height: 0;
+}
+
+.game-page .category-header-cell,
+.game-page .question-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-page .category-header-cell {
+    justify-content: flex-start;
+}
+
+.game-page .scoreboard {
+    flex-shrink: 0;
+}
+
+.game-page .game-actions {
+    flex-shrink: 0;
+}
+
+.game-page .round-complete {
+    flex-shrink: 0;
 }
 
 @keyframes twinkle {
@@ -783,9 +834,9 @@ hr {
 /* Scoreboard - Grid layout for game screen with 5 players per row */
 .scoreboard {
     background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-deep-blue) 100%);
-    padding: 12px 16px;
+    padding: 8px 12px;
     border-radius: 4px;
-    margin: 10px 0;
+    margin: 8px 0;
     border: 2px solid var(--border-blue);
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -799,10 +850,10 @@ hr {
 .score-row {
     display: flex;
     align-items: center;
-    padding: 8px 12px;
+    padding: 6px 10px;
     background: rgba(0,0,0,0.25);
-    gap: 8px;
-    font-size: 0.9rem;
+    gap: 4px;
+    font-size: 0.85rem;
     border-right: 2px solid var(--border-gold);
     border-bottom: 2px solid var(--border-gold);
     justify-content: center;
@@ -885,7 +936,7 @@ hr {
 
 .game-actions {
     text-align: center;
-    margin: 10px 0;
+    margin: 6px 0;
 }
 
 /* Question display - TV Game Show style */
@@ -1693,38 +1744,43 @@ hr {
     
     .game-page .game-board {
         margin: 8px 0;
+        flex: 1;
+        min-height: 0;
     }
     
     .game-page .category-row {
         grid-template-columns: minmax(200px, 1.5fr) repeat(5, 1fr);
+        min-height: 0;
     }
     
     .game-page .category-header-cell {
         font-size: 1rem;
-        padding: 22px 14px;
+        padding: 10px 14px;
+        min-height: 0;
     }
     
     .game-page .question-cell {
         font-size: 1.8rem;
-        padding: 26px 10px;
+        padding: 10px;
+        min-height: 0;
     }
     
     .game-page .scoreboard {
         margin: 8px 0;
-        padding: 14px 20px;
+        padding: 10px 20px;
     }
     
     .game-page .score-row {
-        padding: 10px 14px;
+        padding: 8px 14px;
     }
     
     .game-page .game-actions {
-        margin: 12px 0;
+        margin: 8px 0;
     }
     
     .game-page .round-complete {
-        margin: 12px 0;
-        padding: 16px;
+        margin: 8px 0;
+        padding: 12px;
     }
 }
 
