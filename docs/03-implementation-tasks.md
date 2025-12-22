@@ -21,7 +21,7 @@ This document breaks down the implementation into concrete tasks. Estimated tota
 - [ ] Test database creation and basic operations
 
 ### Task 1.3: Railway Setup
-- [ ] Create `Dockerfile` for uv-based deployment
+- [ ] Add start script to `pyproject.toml` for Railpack
 - [ ] Configure for persistent volume (SQLite + uploads)
 
 ---

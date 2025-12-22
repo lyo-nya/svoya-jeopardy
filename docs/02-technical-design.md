@@ -419,7 +419,6 @@ jeopardy/
 ├── requirements.txt
 ├── pyproject.toml
 ├── uv.lock
-├── Dockerfile
 └── README.md
 ```
 

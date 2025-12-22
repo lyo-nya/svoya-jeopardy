@@ -39,29 +39,12 @@ dependencies = [
     "gunicorn",
     "pillow",
 ]
+
+[project.scripts]
+start = "gunicorn app:create_app()"
 ```
 
-**`Dockerfile`**:
-```dockerfile
-FROM python:3.12-slim
-
-WORKDIR /app
-
-# Install uv
-RUN pip install uv
-
-# Copy dependency files
-COPY pyproject.toml uv.lock ./
-
-# Install dependencies
-RUN uv sync --frozen --no-dev
-
-# Copy application
-COPY . .
-
-# Run with gunicorn (shell form to expand $PORT)
-CMD uv run gunicorn --bind 0.0.0.0:$PORT "app:create_app()"
-```
+Railpack will automatically detect uv (via `uv.lock`) and use it to install dependencies.
 
 ### 1.2 Configure for Persistent Volume
 

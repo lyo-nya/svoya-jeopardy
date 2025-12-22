@@ -91,8 +91,7 @@ jeopardy/
 │   ├── static/
 │   └── templates/
 ├── pyproject.toml
-├── uv.lock
-└── Dockerfile
+└── uv.lock
 ```
 
 ## ✅ Next Steps
