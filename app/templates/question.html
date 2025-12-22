@@ -35,10 +35,8 @@
                             <button type="submit" class="btn btn-player">{{ p.name }}</button>
                         </form>
                     {% endfor %}
-                </div>
-                <div class="skip-section">
-                    <form method="POST" action="{{ url_for('game.skip_question', question_id=question.id) }}">
-                        <button type="submit" class="btn btn-secondary">Никто не ответил</button>
+                    <form method="POST" action="{{ url_for('game.skip_question', question_id=question.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-skip">Никто</button>
                     </form>
                 </div>
             </div>

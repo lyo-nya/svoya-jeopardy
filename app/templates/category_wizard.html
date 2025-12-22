@@ -58,9 +58,16 @@
                 {% if existing_question and existing_question.image_path %}
                     <div class="current-image">
                         <img src="{{ url_for('setup.uploaded_file', filename=existing_question.image_path) }}" alt="">
+                        <label class="remove-image-label">
+                            <input type="checkbox" name="remove_image" value="1">
+                            <span>Удалить картинку</span>
+                        </label>
                     </div>
                 {% endif %}
-                <input type="file" id="image_file" name="image_file" accept="image/*">
+                <label class="file-upload-btn">
+                    <input type="file" id="image_file" name="image_file" accept="image/*">
+                    <span class="btn btn-small btn-secondary">📎 {% if existing_question and existing_question.image_path %}Заменить{% else %}Добавить картинку{% endif %}</span>
+                </label>
             </div>
         </div>
         

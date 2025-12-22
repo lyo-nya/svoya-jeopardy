@@ -203,6 +203,7 @@ def save_category_step(pos: int, step: int):
             points = POINT_VALUES[question_idx]
             question_text = request.form.get("question_text", "").strip()
             answer_text = request.form.get("answer_text", "").strip()
+            remove_image = request.form.get("remove_image") == "1"
             
             # Only save if at least one field is filled
             if question_text or answer_text:
@@ -229,6 +230,14 @@ def save_category_step(pos: int, step: int):
                 
                 question.text = question_text
                 question.answer = answer_text
+                
+                # Handle image removal
+                if remove_image and question.image_path:
+                    # Delete old image file
+                    old_path = os.path.join(current_app.config["UPLOAD_FOLDER"], question.image_path)
+                    if os.path.exists(old_path):
+                        os.remove(old_path)
+                    question.image_path = None
                 
                 # Handle image upload
                 image_file = request.files.get("image_file")
@@ -366,6 +375,14 @@ def save_category(pos: int):
             question.text = question_text
             question.answer = answer_text
             saved_count += 1
+            
+            # Handle image removal
+            remove_image = request.form.get(f"remove_image_{i}") == "1"
+            if remove_image and question.image_path:
+                old_path = os.path.join(current_app.config["UPLOAD_FOLDER"], question.image_path)
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+                question.image_path = None
             
             # Handle image upload
             image_file = request.files.get(f"image_{i}")
