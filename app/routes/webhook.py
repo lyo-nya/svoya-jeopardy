@@ -38,6 +38,7 @@ def handle_message(message: dict):
     chat = message.get("chat", {})
     chat_id = chat.get("id")
     chat_type = chat.get("type")
+    chat_title = chat.get("title") or chat.get("first_name", "Private Chat")
     text = message.get("text", "")
     from_user = message.get("from", {})
     from_user_id = from_user.get("id")
@@ -55,8 +56,18 @@ def handle_message(message: dict):
             # Create or get game for private chat
             game = Game.query.filter_by(chat_id=chat_id).first()
             if not game:
-                game = Game(chat_id=chat_id, host_telegram_id=from_user_id)
+                game = Game(
+                    chat_id=chat_id, 
+                    host_telegram_id=from_user_id,
+                    chat_title=chat_title,
+                    chat_type=chat_type,
+                )
                 db.session.add(game)
+                db.session.commit()
+            elif not game.chat_title:
+                # Update chat title if not set
+                game.chat_title = chat_title
+                game.chat_type = chat_type
                 db.session.commit()
             
             # Send welcome message with WebApp button
