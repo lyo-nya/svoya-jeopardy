@@ -4,55 +4,48 @@
 
 {% block content %}
 <h1>🎄 Своя Jeopardy! 🎄</h1>
-<h2>Создайте свои вопросы</h2>
 
-<p>Привет, <strong>{{ player.name }}</strong>! Создай до 4 категорий с вопросами.</p>
-<p class="hint-text">💡 Можно создать любое количество вопросов — даже один!</p>
+{% set total_questions = namespace(count=0) %}
+{% for cat in categories.values() %}
+    {% set total_questions.count = total_questions.count + (cat.questions | list | length) %}
+{% endfor %}
+<h2>{{ total_questions.count }}/20 вопросов</h2>
 
 <div class="categories-list">
     {% for pos in range(4) %}
         {% set category = categories.get(pos) %}
-        <div class="category-card {% if category %}has-content{% endif %}">
-            <div class="category-header">
-                <span class="category-position">Категория {{ pos + 1 }}</span>
-                {% if category %}
-                    {% set q_count = category.questions | list | length %}
-                    <span class="status status-ready">✓ {{ q_count }} вопр.</span>
-                {% else %}
-                    <span class="status status-empty">○ Пусто</span>
-                {% endif %}
-            </div>
-            
-            {% if category %}
-                <div class="category-name">{{ category.name }}</div>
-                <div class="questions-preview">
-                    {% for question in category.questions %}
-                        <div class="question-preview">
-                            {{ question.points }} очков: {{ question.text[:30] }}{% if question.text|length > 30 %}...{% endif %}
-                        </div>
+        {% if category %}
+            {% set questions_list = category.questions | list %}
+            {% set question_points = questions_list | map(attribute='points') | list %}
+            <div class="category-card has-content">
+                <div class="category-header">
+                    <span class="category-name-inline">{{ category.name }}</span>
+                    <span class="status status-ready">{{ questions_list | length }}/5</span>
+                </div>
+                
+                <div class="points-indicators">
+                    {% for points in [100, 200, 300, 400, 500] %}
+                        <a href="{{ url_for('setup.edit_category_step', pos=pos, step=loop.index) }}" 
+                           class="points-indicator {% if points in question_points %}filled{% endif %}">
+                            {{ points }}
+                        </a>
                     {% endfor %}
                 </div>
-            {% else %}
-                <div class="category-name empty">Ещё не создана</div>
-            {% endif %}
-            
-            <a href="{{ url_for('setup.edit_category', pos=pos) }}" class="btn">
-                {% if category %}✏️ Редактировать{% else %}➕ Добавить{% endif %}
-            </a>
-        </div>
+            </div>
+        {% endif %}
     {% endfor %}
 </div>
 
-<div class="progress">
-    {% set total_questions = namespace(count=0) %}
-    {% for cat in categories.values() %}
-        {% set total_questions.count = total_questions.count + (cat.questions | list | length) %}
-    {% endfor %}
-    <p>Всего вопросов: <strong>{{ total_questions.count }}</strong></p>
-    {% if total_questions.count > 0 %}
-        <p class="ready-message">✨ Отлично! Ты можешь начать игру или добавить ещё вопросов.</p>
+{% set next_pos = namespace(value=none) %}
+{% for pos in range(4) %}
+    {% if not categories.get(pos) and next_pos.value is none %}
+        {% set next_pos.value = pos %}
     {% endif %}
-</div>
+{% endfor %}
 
-<a href="{{ url_for('main.lobby') }}" class="btn btn-primary">🚪 Перейти в лобби</a>
+{% if next_pos.value is not none %}
+<a href="{{ url_for('setup.edit_category', pos=next_pos.value) }}" class="btn btn-secondary add-category-btn">+ Добавить категорию</a>
+{% endif %}
+
+<a href="{{ url_for('main.lobby') }}" class="btn btn-primary">🚪 В лобби</a>
 {% endblock %}
