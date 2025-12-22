@@ -60,7 +60,7 @@ def handle_message(message: dict):
                 db.session.commit()
             
             # Send welcome message with WebApp button
-            send_webapp_button(chat_id, bot_token, app_url)
+            send_webapp_button(chat_id, bot_token, app_url, is_group=False)
             current_app.logger.info(f"Sent WebApp button to private chat {chat_id}")
 
 
@@ -115,7 +115,7 @@ def handle_my_chat_member(update: dict):
         app_url = current_app.config.get("APP_URL", "")
         
         if bot_token and app_url:
-            success = send_webapp_button(chat_id, bot_token, app_url)
+            success = send_webapp_button(chat_id, bot_token, app_url, is_group=True)
             if success:
                 current_app.logger.info(f"Sent WebApp button to group {chat_id}")
             else:

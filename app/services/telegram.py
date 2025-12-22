@@ -15,7 +15,22 @@ from app.models import Game, Player
 SESSION_TIMEOUT = 3600
 
 
-def send_webapp_button(chat_id: int, bot_token: str, app_url: str) -> bool:
+def get_bot_username(bot_token: str) -> str | None:
+    """Get the bot's username from Telegram API."""
+    try:
+        response = requests.get(
+            f"https://api.telegram.org/bot{bot_token}/getMe",
+            timeout=10
+        )
+        result = response.json()
+        if result.get("ok"):
+            return result["result"].get("username")
+    except Exception as e:
+        current_app.logger.error(f"Error getting bot info: {e}")
+    return None
+
+
+def send_webapp_button(chat_id: int, bot_token: str, app_url: str, is_group: bool = True) -> bool:
     """
     Send a message to a chat with a button to open the WebApp.
     
@@ -23,6 +38,7 @@ def send_webapp_button(chat_id: int, bot_token: str, app_url: str) -> bool:
         chat_id: The Telegram chat ID
         bot_token: The bot's API token
         app_url: The base URL of the web app (e.g., https://svoya-jeopardy.fly.dev)
+        is_group: Whether this is a group chat (affects button type)
         
     Returns:
         True if message was sent successfully, False otherwise
@@ -36,32 +52,64 @@ def send_webapp_button(chat_id: int, bot_token: str, app_url: str) -> bool:
     # Clean up the app_url (remove trailing slash if present)
     app_url = app_url.rstrip("/")
     
-    # The WebApp URL - Telegram will include chat info in initData automatically
-    # when the button is pressed in a group chat
-    webapp_url = app_url
+    current_app.logger.info(f"Sending WebApp button to chat {chat_id}, is_group={is_group}")
     
-    current_app.logger.info(f"Sending WebApp button to chat {chat_id} with URL: {webapp_url}")
-    
-    # Create inline keyboard with WebApp button
-    keyboard = {
-        "inline_keyboard": [[
-            {
-                "text": "🎮 Play New Year Jeopardy!",
-                "web_app": {"url": webapp_url}
-            }
-        ]]
-    }
+    if is_group:
+        # For group chats, web_app buttons don't work in inline keyboards
+        # Use a URL button that deep links to the bot with start parameter
+        bot_username = get_bot_username(bot_token)
+        if not bot_username:
+            current_app.logger.error("Could not get bot username")
+            return False
+        
+        # Deep link to bot with chat_id as start parameter
+        # When user clicks, they open private chat with bot and can launch WebApp
+        start_link = f"https://t.me/{bot_username}?startapp=chat_{chat_id}"
+        
+        keyboard = {
+            "inline_keyboard": [[
+                {
+                    "text": "🎮 Play New Year Jeopardy!",
+                    "url": start_link
+                }
+            ]]
+        }
+        
+        message_text = (
+            "🎆 *New Year Jeopardy Party Game* 🎆\n\n"
+            "Welcome! I'm here to host a fun Jeopardy-style party game.\n\n"
+            "📋 *How to play:*\n"
+            "1. Each player creates their own questions\n"
+            "2. Take turns answering each other's questions\n"
+            "3. Earn points for correct answers\n"
+            "4. Most points wins! 🏆\n\n"
+            "Click the button below to join this game!"
+        )
+    else:
+        # For private chats, web_app buttons work
+        keyboard = {
+            "inline_keyboard": [[
+                {
+                    "text": "🎮 Play New Year Jeopardy!",
+                    "web_app": {"url": app_url}
+                }
+            ]]
+        }
+        
+        message_text = (
+            "🎆 *New Year Jeopardy Party Game* 🎆\n\n"
+            "Welcome! I'm here to host a fun Jeopardy-style party game.\n\n"
+            "📋 *How to play:*\n"
+            "1. Each player creates their own questions\n"
+            "2. Take turns answering each other's questions\n"
+            "3. Earn points for correct answers\n"
+            "4. Most points wins! 🏆\n\n"
+            "Click the button below to open the game!"
+        )
     
     payload = {
         "chat_id": chat_id,
-        "text": "🎆 *New Year Jeopardy Party Game* 🎆\n\n"
-                "Welcome! I'm here to host a fun Jeopardy-style party game.\n\n"
-                "📋 *How to play:*\n"
-                "1. Each player creates their own questions\n"
-                "2. Take turns answering each other's questions\n"
-                "3. Earn points for correct answers\n"
-                "4. Most points wins! 🏆\n\n"
-                "Click the button below to join the game!",
+        "text": message_text,
         "parse_mode": "Markdown",
         "reply_markup": json.dumps(keyboard)
     }
