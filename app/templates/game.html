@@ -62,7 +62,45 @@
     </div>
 {% endif %}
 
-<div class="game-actions">
-    <a href="{{ url_for('main.scores') }}" class="btn">Таблица счёта</a>
-</div>
+<script>
+(function() {
+    // Handle question cell selection animation on mousedown
+    document.querySelectorAll('a.question-cell').forEach(function(cell) {
+        cell.addEventListener('mousedown', function(e) {
+            // Prevent default to control navigation timing
+            e.preventDefault();
+            
+            var href = this.getAttribute('href');
+            
+            // Add selecting class to trigger animation
+            this.classList.add('selecting');
+            
+            // Navigate after animation completes (400ms)
+            setTimeout(function() {
+                window.location.href = href;
+            }, 400);
+        });
+        
+        // Also handle touchstart for mobile
+        cell.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            
+            var href = this.getAttribute('href');
+            
+            // Add selecting class to trigger animation
+            this.classList.add('selecting');
+            
+            // Navigate after animation completes (400ms)
+            setTimeout(function() {
+                window.location.href = href;
+            }, 400);
+        }, { passive: false });
+        
+        // Prevent click navigation (mousedown already handles it)
+        cell.addEventListener('click', function(e) {
+            e.preventDefault();
+        });
+    });
+})();
+</script>
 {% endblock %}
