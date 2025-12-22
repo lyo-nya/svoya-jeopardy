@@ -11,8 +11,6 @@ class Game(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     chat_id = db.Column(db.BigInteger, nullable=False, unique=True)
-    chat_title = db.Column(db.String(255), nullable=True)  # Chat/group name for display
-    chat_type = db.Column(db.String(20), nullable=True)  # private, group, supergroup
     host_telegram_id = db.Column(db.BigInteger, nullable=False)
     status = db.Column(db.String(20), default="setup")  # setup, in_progress, completed
     current_round_id = db.Column(db.Integer, db.ForeignKey("rounds.id"), nullable=True)
