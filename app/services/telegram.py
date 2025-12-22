@@ -265,20 +265,12 @@ def send_webapp_button(chat_id: int, bot_token: str, app_url: str, *, is_group: 
         if not bot_username:
             return False
         start_link = f"https://t.me/{bot_username}?startapp=chat_{chat_id}"
-        keyboard = {"inline_keyboard": [[{"text": "🎮 Play New Year Jeopardy!", "url": start_link}]]}
+        keyboard = {"inline_keyboard": [[{"text": "Поехали!", "url": start_link}]]}
     else:
-        keyboard = {"inline_keyboard": [[{"text": "🎮 Play New Year Jeopardy!", "web_app": {"url": app_url}}]]}
+        keyboard = {"inline_keyboard": [[{"text": "Поехали!", "web_app": {"url": app_url}}]]}
 
-    message_text = (
-        "🎆 *New Year Jeopardy Party Game* 🎆\n\n"
-        "Welcome! I'm here to host a fun Jeopardy-style party game.\n\n"
-        "📋 *How to play:*\n"
-        "1. Each player creates their own questions\n"
-        "2. Take turns answering each other's questions\n"
-        "3. Earn points for correct answers\n"
-        "4. Most points wins! 🏆\n\n"
-        f"Click the button below to {'join this game!' if is_group else 'open the game!'}"
-    )
+    # Minimal message text (Telegram requires non-empty text)
+    message_text = "🎲"
 
     try:
         response = requests.post(
@@ -286,7 +278,6 @@ def send_webapp_button(chat_id: int, bot_token: str, app_url: str, *, is_group: 
             json={
                 "chat_id": chat_id,
                 "text": message_text,
-                "parse_mode": "Markdown",
                 "reply_markup": json.dumps(keyboard),
             },
             timeout=TELEGRAM_API_TIMEOUT,
