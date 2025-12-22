@@ -1,6 +1,7 @@
 """Game routes for gameplay control."""
 
-from flask import render_template, redirect, url_for, flash, g
+from flask import render_template, redirect, url_for, flash, g, current_app
+from sqlalchemy.exc import SQLAlchemyError
 from app.routes import game_bp
 from app import db
 from app.models import Game, Player, Round, RoundScore, Category, Question
@@ -103,21 +104,28 @@ def start_game():
         flash(f"These players haven't submitted questions: {names}", "error")
         return redirect(url_for("main.lobby"))
     
-    # Create Round records for each player
-    for i, p in enumerate(players):
-        round_record = Round(
-            game_id=game.id,
-            player_id=p.id,
-            round_number=i + 1,
-            status="pending",
-        )
-        db.session.add(round_record)
+    try:
+        # Create Round records for each player
+        for i, p in enumerate(players):
+            round_record = Round(
+                game_id=game.id,
+                player_id=p.id,
+                round_number=i + 1,
+                status="pending",
+            )
+            db.session.add(round_record)
+        
+        # Update game status
+        game.status = "in_progress"
+        db.session.commit()
+        
+        flash("🎮 Game started! Select whose questions to play first.", "success")
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Database error starting game: {e}")
+        flash("An error occurred starting the game. Please try again.", "error")
+        return redirect(url_for("main.lobby"))
     
-    # Update game status
-    game.status = "in_progress"
-    db.session.commit()
-    
-    flash("Game started! Select whose questions to play first.", "success")
     return redirect(url_for("game.select_round"))
 
 
@@ -222,6 +230,17 @@ def show_question(question_id: int):
     question = Question.query.get_or_404(question_id)
     category = question.category
     
+    # Verify question belongs to current round
+    current_round = Round.query.get(game.current_round_id) if game.current_round_id else None
+    if not current_round or category.player_id != current_round.player_id:
+        flash("Invalid question for current round", "error")
+        return redirect(url_for("game.game_board"))
+    
+    # Check if already answered
+    if question.is_answered:
+        flash("This question has already been answered", "error")
+        return redirect(url_for("game.game_board"))
+    
     # Get players who can receive points (not the question author)
     sitting_out_player = category.player
     eligible_players = [p for p in game.players if p.id != sitting_out_player.id]
@@ -264,23 +283,47 @@ def award_points(question_id: int, player_id: int):
     
     question = Question.query.get_or_404(question_id)
     
-    # Mark question as answered
-    question.is_answered = True
-    question.answered_by_player_id = player_id
+    # Check if already answered
+    if question.is_answered:
+        flash("This question has already been answered", "error")
+        return redirect(url_for("game.game_board"))
     
-    # Update round score
-    current_round = Round.query.get(game.current_round_id)
-    if current_round:
+    # Verify the player exists and is in this game
+    target_player = Player.query.filter_by(id=player_id, game_id=game.id).first()
+    if not target_player:
+        flash("Invalid player", "error")
+        return redirect(url_for("game.game_board"))
+    
+    # Verify player is not sitting out
+    current_round = Round.query.get(game.current_round_id) if game.current_round_id else None
+    if not current_round:
+        flash("No active round", "error")
+        return redirect(url_for("game.select_round"))
+    
+    if target_player.id == current_round.player_id:
+        flash("Cannot award points to the player sitting out", "error")
+        return redirect(url_for("game.show_question", question_id=question_id, revealed="1"))
+    
+    try:
+        # Mark question as answered
+        question.is_answered = True
+        question.answered_by_player_id = player_id
+        
+        # Update round score
         round_score = RoundScore.query.filter_by(
             round_id=current_round.id,
             player_id=player_id,
         ).first()
         if round_score:
             round_score.score += question.points
+        
+        db.session.commit()
+        flash(f"Awarded {question.points} points to {target_player.name}!", "success")
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Database error awarding points: {e}")
+        flash("An error occurred. Please try again.", "error")
     
-    db.session.commit()
-    
-    flash(f"Awarded {question.points} points!", "success")
     return redirect(url_for("game.game_board"))
 
 
@@ -302,11 +345,22 @@ def skip_question(question_id: int):
         return redirect(url_for("game.game_board"))
     
     question = Question.query.get_or_404(question_id)
-    question.is_answered = True
-    question.answered_by_player_id = None
-    db.session.commit()
     
-    flash("Question skipped", "success")
+    # Check if already answered
+    if question.is_answered:
+        flash("This question has already been answered", "error")
+        return redirect(url_for("game.game_board"))
+    
+    try:
+        question.is_answered = True
+        question.answered_by_player_id = None
+        db.session.commit()
+        flash("Question skipped - no points awarded", "success")
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Database error skipping question: {e}")
+        flash("An error occurred. Please try again.", "error")
+    
     return redirect(url_for("game.game_board"))
 
 
@@ -329,7 +383,11 @@ def next_round():
     
     current_round = Round.query.get(game.current_round_id) if game.current_round_id else None
     
-    if current_round:
+    if not current_round:
+        flash("No active round to complete", "error")
+        return redirect(url_for("game.select_round"))
+    
+    try:
         # Add round scores to total scores
         for rs in current_round.round_scores:
             rs.player.total_score += rs.score
@@ -338,5 +396,19 @@ def next_round():
         current_round.status = "completed"
         game.current_round_id = None
         db.session.commit()
+        
+        # Check if there are more rounds
+        pending_rounds = Round.query.filter_by(game_id=game.id, status="pending").count()
+        if pending_rounds == 0:
+            game.status = "completed"
+            db.session.commit()
+            flash("🎉 All rounds complete! Game over!", "success")
+            return redirect(url_for("main.results"))
+        
+        flash(f"Round {current_round.round_number} complete!", "success")
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Database error completing round: {e}")
+        flash("An error occurred. Please try again.", "error")
     
     return redirect(url_for("game.select_round"))
