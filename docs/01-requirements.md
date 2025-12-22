@@ -67,7 +67,7 @@ A Telegram Mini App for playing Jeopardy-style trivia at a New Year's Eve party.
 
 ### US-5: Game Board Display
 
-**As a host**, I want to see the Jeopardy game board, so that I can control the game.
+**As a host**, I want to see the Jeopardy game board on a large screen (TV/projector), so that everyone can see and I can control the game.
 
 **Acceptance Criteria:**
 - Board displays 4 category columns
@@ -75,6 +75,7 @@ A Telegram Mini App for playing Jeopardy-style trivia at a New Year's Eve party.
 - Answered questions are visually marked as complete
 - Scoreboard is visible showing current round scores and overall scores
 - Player whose round it is shown as "sitting out"
+- Layout optimized for large screen viewing
 
 ---
 
@@ -140,7 +141,7 @@ A Telegram Mini App for playing Jeopardy-style trivia at a New Year's Eve party.
 
 ### FR-1: Telegram Integration
 - FR-1.1: App authenticates users via Telegram WebApp API
-- FR-1.2: App retrieves user info (name, ID, photo) from Telegram
+- FR-1.2: App retrieves user info (name, ID) from Telegram
 - FR-1.3: App works within Telegram's Mini App container
 - FR-1.4: App uses Telegram's theme colors for consistent look
 

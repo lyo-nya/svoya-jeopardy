@@ -22,7 +22,7 @@ A Telegram Mini App for playing Jeopardy-style trivia at your New Year's Eve par
 4. Question sets are hidden from other players
 
 ### At the Party
-1. Host opens the app and starts the game
+1. Host opens the app on a large screen (TV/projector) and starts the game
 2. Host selects whose question set to play first
 3. The question author sits out their round
 4. Host controls the board: reveals questions, shows answers, awards points
@@ -90,9 +90,9 @@ jeopardy/
 │   ├── services/
 │   ├── static/
 │   └── templates/
-├── Procfile
-├── railway.toml
-└── requirements.txt
+├── pyproject.toml
+├── uv.lock
+└── Dockerfile
 ```
 
 ## ✅ Next Steps

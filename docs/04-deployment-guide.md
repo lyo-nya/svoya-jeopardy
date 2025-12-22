@@ -26,28 +26,41 @@ We'll deploy to **Railway**, which provides:
 
 Make sure your repository has these files:
 
-**`Procfile`** (tells Railway how to run the app):
-```
-web: gunicorn --bind 0.0.0.0:$PORT app:create_app()
-```
 
-**`railway.toml`** (Railway configuration):
+**`pyproject.toml`** (dependencies managed by uv):
 ```toml
-[build]
-builder = "nixpacks"
-
-[deploy]
-restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 10
+[project]
+name = "jeopardy"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "flask",
+    "flask-sqlalchemy",
+    "gunicorn",
+    "pillow",
+]
 ```
 
-**`requirements.txt`** (Python dependencies):
-```
-flask==3.0.0
-flask-sqlalchemy==3.1.1
-gunicorn==21.2.0
-python-dotenv==1.0.0
-pillow==10.1.0
+**`Dockerfile`**:
+```dockerfile
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install uv
+RUN pip install uv
+
+# Copy dependency files
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies
+RUN uv sync --frozen --no-dev
+
+# Copy application
+COPY . .
+
+# Run with gunicorn (shell form to expand $PORT)
+CMD uv run gunicorn --bind 0.0.0.0:$PORT "app:create_app()"
 ```
 
 ### 1.2 Configure for Persistent Volume
@@ -59,11 +72,11 @@ Update your Flask config to use Railway's volume mount path:
 import os
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key')
-    TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+    SECRET_KEY = os.environ['SECRET_KEY']
+    TELEGRAM_BOT_TOKEN = os.environ['TELEGRAM_BOT_TOKEN']
     
-    # Use Railway volume path if available, otherwise local
-    DATA_DIR = os.environ.get('RAILWAY_VOLUME_MOUNT_PATH', './data')
+    # Use Railway volume path
+    DATA_DIR = os.environ.get('RAILWAY_VOLUME_MOUNT_PATH', '/data')
     SQLALCHEMY_DATABASE_URI = f"sqlite:///{DATA_DIR}/jeopardy.db"
     UPLOAD_FOLDER = f"{DATA_DIR}/uploads"
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MB
@@ -98,7 +111,6 @@ Railway will automatically detect Python and start building.
 |----------|-------|
 | `SECRET_KEY` | (generate random: `python -c "import secrets; print(secrets.token_hex(32))"`) |
 | `TELEGRAM_BOT_TOKEN` | Your bot token from BotFather |
-| `FLASK_ENV` | `production` |
 
 ### 2.4 Add Persistent Volume
 
@@ -269,5 +281,4 @@ exit
 |----------|-------------|---------|
 | `SECRET_KEY` | Flask secret key | `abc123...` (random hex) |
 | `TELEGRAM_BOT_TOKEN` | Bot token from BotFather | `123456:ABC-DEF...` |
-| `FLASK_ENV` | Environment mode | `production` |
 | `RAILWAY_VOLUME_MOUNT_PATH` | Auto-set by Railway | `/data` |

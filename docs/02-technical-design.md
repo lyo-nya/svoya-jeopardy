@@ -57,8 +57,8 @@
 │ chat_id      │◄──────│ game_id (FK) │◄──────│ player_id(FK)│
 │ host_id      │       │ telegram_id  │       │ name         │
 │ status       │       │ name         │       │ position     │
-│ current_round│       │ photo_url    │       └──────┬───────┘
-│ created_at   │       │ is_host      │              │
+│ current_round│       │ is_host      │       └──────┬───────┘
+│ created_at   │       │ total_score  │              │
 └──────────────┘       │ total_score  │              │
                        └──────────────┘              │
                                                      │
@@ -103,7 +103,6 @@ CREATE TABLE players (
     game_id INTEGER NOT NULL,
     telegram_id INTEGER NOT NULL,
     name TEXT NOT NULL,
-    photo_url TEXT,
     is_host BOOLEAN DEFAULT FALSE,
     total_score INTEGER DEFAULT 0,
     questions_submitted BOOLEAN DEFAULT FALSE,
@@ -168,7 +167,7 @@ CREATE TABLE round_scores (
 | `/setup/category/<pos>` | GET | Edit single category | Player |
 | `/lobby` | GET | Pre-game lobby, see who's ready | All |
 | `/game` | GET | Main game board (host view) | Host |
-| `/game/question/<id>` | GET | Display single question | Host |
+| `/game/question/<id>` | GET | Display single question (host selects from board) | Host |
 | `/scores` | GET | Scoreboard view | All |
 | `/results` | GET | Final results page | All |
 
@@ -418,8 +417,9 @@ jeopardy/
 ├── tests/
 │   └── ...
 ├── requirements.txt
-├── Procfile
-├── railway.toml
+├── pyproject.toml
+├── uv.lock
+├── Dockerfile
 └── README.md
 ```
 
@@ -430,7 +430,7 @@ jeopardy/
 1. User opens Mini App from Telegram
 2. Telegram passes `initData` to the WebApp
 3. Flask validates `initData` signature using bot token
-4. Extract user info (id, name, photo) from validated data
+4. Extract user info (id, name) from validated data
 5. Create/update player in database
 6. Store user session
 

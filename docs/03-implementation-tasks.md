@@ -10,15 +10,8 @@ This document breaks down the implementation into concrete tasks. Estimated tota
 
 ### Task 1.1: Initialize Project Structure
 - [ ] Create directory structure as per technical design
-- [ ] Create `requirements.txt` with dependencies:
-  ```
-  flask==3.0.0
-  flask-sqlalchemy==3.1.1
-  gunicorn==21.2.0
-  python-dotenv==1.0.0
-  pillow==10.1.0
-  ```
-- [ ] Create `.env.example` with required environment variables
+- [ ] Initialize project with `uv init`
+- [ ] Add dependencies: `uv add flask flask-sqlalchemy gunicorn pillow`
 - [ ] Create `config.py` with Flask configuration
 - [ ] Create Flask app factory in `__init__.py`
 
@@ -28,8 +21,7 @@ This document breaks down the implementation into concrete tasks. Estimated tota
 - [ ] Test database creation and basic operations
 
 ### Task 1.3: Railway Setup
-- [ ] Create `Procfile` for Gunicorn
-- [ ] Create `railway.toml` for build config
+- [ ] Create `Dockerfile` for uv-based deployment
 - [ ] Configure for persistent volume (SQLite + uploads)
 
 ---
@@ -39,7 +31,7 @@ This document breaks down the implementation into concrete tasks. Estimated tota
 ### Task 2.1: Telegram WebApp Validation
 - [ ] Implement `validate_telegram_data()` function
 - [ ] Create middleware/decorator to validate all requests
-- [ ] Extract and store user info (id, name, photo)
+- [ ] Extract and store user info (id, name)
 - [ ] Handle validation failures gracefully
 
 ### Task 2.2: Bot Webhook for Host Detection
