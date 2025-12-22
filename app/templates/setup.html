@@ -3,7 +3,7 @@
 {% block title %}Создание вопросов - Своя Jeopardy!{% endblock %}
 
 {% block content %}
-<h1>🎄 Своя Jeopardy! 🎄</h1>
+<h1>Создание вопросов</h1>
 
 {% set total_questions = namespace(count=0) %}
 {% for cat in categories.values() %}
@@ -47,5 +47,5 @@
 <a href="{{ url_for('setup.edit_category', pos=next_pos.value) }}" class="btn btn-secondary add-category-btn">+ Добавить категорию</a>
 {% endif %}
 
-<a href="{{ url_for('main.lobby') }}" class="btn btn-primary">🚪 В лобби</a>
+<a href="{{ url_for('main.lobby') }}" class="btn btn-primary">В лобби</a>
 {% endblock %}

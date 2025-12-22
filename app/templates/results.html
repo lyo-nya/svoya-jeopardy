@@ -4,14 +4,14 @@
 
 {% block content %}
 <div class="results-page">
-    <h1>🎆🎉 Игра окончена! 🎉🎆</h1>
+    <h1>Игра окончена!</h1>
     <p class="happy-new-year">С Новым Годом!</p>
 
     {% if players %}
         <div class="winner-section">
-            <div class="trophy-icon">🏆</div>
+            <div class="trophy-icon"></div>
             <div class="winner-label">ПОБЕДИТЕЛЬ</div>
-            <div class="winner-name">✨ {{ players[0].name }} ✨</div>
+            <div class="winner-name">{{ players[0].name }}</div>
             <div class="winner-score">{{ players[0].total_score }} очков</div>
         </div>
         
@@ -30,12 +30,10 @@
     {% endif %}
 
     <div class="standings">
-        <h3>🏅 Итоговая таблица</h3>
+        <h3>Итоговая таблица</h3>
         {% for p in players %}
             <div class="standing-row {% if loop.index == 1 %}first{% elif loop.index == 2 %}second{% elif loop.index == 3 %}third{% endif %}">
-                <span class="rank">
-                    {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}.{% endif %}
-                </span>
+                <span class="rank">{{ loop.index }}.</span>
                 <span class="name">{{ p.name }}</span>
                 <span class="score">{{ p.total_score }} очк.</span>
             </div>
@@ -44,7 +42,7 @@
 
     {% if rounds and players %}
         <div class="round-breakdown">
-            <h3>📊 Счёт по раундам</h3>
+            <h3>Счёт по раундам</h3>
             <div class="breakdown-table-wrapper">
                 <table class="breakdown-table">
                     <thead>
@@ -85,13 +83,13 @@
     {% endif %}
 
     <div class="celebration-footer">
-        <p>🎆 Спасибо за игру! 🎆</p>
+        <p>Спасибо за игру!</p>
     </div>
 
     {% if player.is_host %}
     <div class="reset-section">
         <form method="POST" action="{{ url_for('game.reset_game') }}" onsubmit="return confirm('Вы уверены? Все результаты будут сброшены!');">
-            <button type="submit" class="btn btn-secondary">🔄 Начать новую игру</button>
+            <button type="submit" class="btn btn-secondary">Начать новую игру</button>
         </form>
     </div>
     {% endif %}

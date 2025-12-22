@@ -4,13 +4,13 @@
 
 {% block content %}
 <div class="error-page">
-    <div class="error-icon">🔍</div>
+    <div class="error-icon">?</div>
     <h1>Страница не найдена</h1>
     <p class="error-message">К сожалению, мы не смогли найти запрашиваемую страницу.</p>
     <p class="error-code">Ошибка 404</p>
     
     <div class="error-actions">
-        <a href="{{ url_for('main.entry') }}" class="btn btn-primary">🏠 На главную</a>
+        <a href="{{ url_for('main.entry') }}" class="btn btn-primary">На главную</a>
     </div>
 </div>
 {% endblock %}

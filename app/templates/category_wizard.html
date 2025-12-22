@@ -66,7 +66,7 @@
                 {% endif %}
                 <label class="file-upload-btn">
                     <input type="file" id="image_file" name="image_file" accept="image/*">
-                    <span class="btn btn-small btn-secondary">📎 {% if existing_question and existing_question.image_path %}Заменить{% else %}Добавить картинку{% endif %}</span>
+                    <span class="btn btn-small btn-secondary">{% if existing_question and existing_question.image_path %}Заменить{% else %}Добавить картинку{% endif %}</span>
                 </label>
             </div>
         </div>
@@ -94,7 +94,7 @@
                     </button>
                 {% else %}
                     <button type="submit" name="action" value="finish" class="btn btn-primary">
-                        ✓ Готово
+                        Готово
                     </button>
                 {% endif %}
             </div>

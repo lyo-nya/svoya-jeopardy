@@ -7,7 +7,7 @@
 
 <h1>Категория {{ pos + 1 }}</h1>
 
-<p class="form-hint">💡 Можно сохранять по одному вопросу. Заполни хотя бы один вопрос и нажми «Сохранить».</p>
+<p class="form-hint">Можно сохранять по одному вопросу. Заполни хотя бы один вопрос и нажми «Сохранить».</p>
 
 <form method="POST" enctype="multipart/form-data">
     <div class="form-group">
@@ -26,7 +26,7 @@
             <div class="question-form-header">
                 <h3>Вопрос {{ i + 1 }} ({{ point_values[i] }} очков)</h3>
                 {% if question and question.text %}
-                    <span class="question-saved-badge">✓ Сохранён</span>
+                    <span class="question-saved-badge">Сохранён</span>
                 {% endif %}
             </div>
             
@@ -56,7 +56,7 @@
                 {% endif %}
                 <label class="file-upload-btn">
                     <input type="file" id="image_{{ i }}" name="image_{{ i }}" accept="image/*">
-                    <span class="btn btn-small btn-secondary">📎 {% if question and question.image_path %}Заменить{% else %}Добавить картинку{% endif %}</span>
+                    <span class="btn btn-small btn-secondary">{% if question and question.image_path %}Заменить{% else %}Добавить картинку{% endif %}</span>
                 </label>
             </div>
         </div>
@@ -64,6 +64,6 @@
         {% if not loop.last %}<hr>{% endif %}
     {% endfor %}
     
-    <button type="submit" class="btn btn-primary btn-save">💾 Сохранить категорию</button>
+    <button type="submit" class="btn btn-primary btn-save">Сохранить категорию</button>
 </form>
 {% endblock %}
