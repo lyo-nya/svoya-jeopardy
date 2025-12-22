@@ -282,18 +282,21 @@ def get_chat_id() -> int | None:
     """
     Extract chat_id from Telegram data.
     
-    For group chats, chat_id comes from the chat object or start_param.
+    For group chats, chat_id comes from start_param or the chat object.
     For private chats, we use the user's telegram_id as chat_id.
+    
+    Priority order:
+    1. start_param (explicit reference to a group chat via direct link)
+    2. chat object with group/supergroup type
+    3. user's telegram_id (private chat fallback)
     """
     telegram_data = g.get("telegram_data")
     if not telegram_data:
         return None
     
-    # Group chat: chat object contains the id
-    if "chat" in telegram_data:
-        return telegram_data["chat"].get("id")
-    
-    # Group chat via start_param (when opened via bot link with parameter)
+    # First check start_param - this is used when opening from group chat
+    # via a direct link (t.me/bot?startapp=chat_XXXXX)
+    # This takes priority because it's an explicit reference to a specific chat
     if "start_param" in telegram_data:
         param = telegram_data["start_param"]
         # start_param format: "chat_<chat_id>"
@@ -301,6 +304,16 @@ def get_chat_id() -> int | None:
             chat_id_str = param[5:]
             if chat_id_str.lstrip("-").isdigit():
                 return int(chat_id_str)
+    
+    # Check chat object - but only use it for group/supergroup chats
+    # When opened via direct link, the chat object may contain the user's
+    # private chat context, which we don't want to use for group games
+    if "chat" in telegram_data:
+        chat = telegram_data["chat"]
+        chat_type = chat.get("type", "")
+        # Only use chat object for actual group chats
+        if chat_type in ("group", "supergroup"):
+            return chat.get("id")
     
     # Private chat: use user's telegram_id
     if "user" in telegram_data:
