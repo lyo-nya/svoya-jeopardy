@@ -17,17 +17,13 @@ def create_app(config_name=None):
     app.config.from_object(config[config_name])
 
     # Ensure instance folder exists
-    try:
+    if not os.path.exists(app.instance_path):
         os.makedirs(app.instance_path)
-    except OSError:
-        pass
 
     # Ensure uploads folder exists
     uploads_path = os.path.join(os.path.dirname(app.instance_path), "uploads")
-    try:
+    if not os.path.exists(uploads_path):
         os.makedirs(uploads_path)
-    except OSError:
-        pass
 
     # Initialize extensions
     db.init_app(app)
