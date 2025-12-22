@@ -371,8 +371,8 @@ def delete_category(pos: int):
             for question in category.questions:
                 if question.image_path:
                     _delete_image(question.image_path)
-            # Delete all questions
-            Question.query.filter_by(category_id=category.id).delete()
+            # Delete all questions (synchronize_session=False to avoid conflicts with loaded objects)
+            Question.query.filter_by(category_id=category.id).delete(synchronize_session=False)
             # Delete the category
             db.session.delete(category)
             db.session.commit()
