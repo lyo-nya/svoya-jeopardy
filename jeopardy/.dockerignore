@@ -1,0 +1,48 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.env
+.venv
+env/
+venv/
+ENV/
+.eggs/
+*.egg-info/
+*.egg
+.mypy_cache/
+.pytest_cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Fly.io
+fly.toml
+
+# Local development
+instance/
+*.db
+*.sqlite
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Testing
+tests/
+.coverage
+htmlcov/
