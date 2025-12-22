@@ -797,30 +797,46 @@ hr {
 }
 
 /* Blinking effect when selecting/clicking a question */
-.question-cell:active:not(.answered) {
-    animation: question-blink 0.3s ease-in-out;
+.question-cell.selecting {
+    animation: question-blink 0.4s ease-in-out;
+    pointer-events: none;
 }
 
 @keyframes question-blink {
-    0%, 100% {
+    0% {
         background: linear-gradient(180deg, #142d52 0%, #0d1e3a 100%);
         border-color: var(--gold);
         box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
     }
-    25% {
+    20% {
         background: linear-gradient(180deg, var(--gold) 0%, var(--gold-dim) 100%);
         border-color: var(--gold-bright);
         box-shadow: 0 0 30px rgba(212, 175, 55, 0.9);
+        color: var(--bg-deep-blue);
     }
-    50% {
+    40% {
         background: linear-gradient(180deg, #142d52 0%, #0d1e3a 100%);
         border-color: var(--gold);
         box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+        color: var(--gold);
     }
-    75% {
+    60% {
         background: linear-gradient(180deg, var(--gold) 0%, var(--gold-dim) 100%);
         border-color: var(--gold-bright);
         box-shadow: 0 0 30px rgba(212, 175, 55, 0.9);
+        color: var(--bg-deep-blue);
+    }
+    80% {
+        background: linear-gradient(180deg, #142d52 0%, #0d1e3a 100%);
+        border-color: var(--gold);
+        box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+        color: var(--gold);
+    }
+    100% {
+        background: linear-gradient(180deg, var(--gold) 0%, var(--gold-dim) 100%);
+        border-color: var(--gold-bright);
+        box-shadow: 0 0 40px rgba(212, 175, 55, 1);
+        color: var(--bg-deep-blue);
     }
 }
 
