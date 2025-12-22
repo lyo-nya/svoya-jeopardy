@@ -57,8 +57,8 @@
                         {% for round in rounds %}
                             <tr>
                                 <td class="round-cell">
-                                    Р{{ round.round_number }}
-                                    <span class="round-author">({{ round.player.name[:5] }}{% if round.player.name|length > 5 %}…{% endif %})</span>
+                                    <span class="round-author-name">{{ round.player.name }}</span>
+                                    <span class="round-number">Р{{ round.round_number }}</span>
                                 </td>
                                 {% for p in players %}
                                     {% if p.id == round.player_id %}

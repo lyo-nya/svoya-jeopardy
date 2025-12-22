@@ -1309,10 +1309,16 @@ hr {
 
 .breakdown-table .round-cell {
     text-align: left;
-    font-weight: 700;
 }
 
-.breakdown-table .round-author {
+.breakdown-table .round-author-name {
+    display: block;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.breakdown-table .round-number {
     font-size: 0.7rem;
     color: var(--text-muted);
     display: block;
