@@ -988,6 +988,13 @@ hr {
     font-size: 1.25rem;
 }
 
+.reset-section {
+    text-align: center;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+}
+
 /* Round selection */
 .round-selection {
     margin: 24px 0;
@@ -1142,6 +1149,210 @@ hr {
     margin-bottom: 16px;
 }
 
+/* Wizard styles */
+.wizard-progress {
+    margin: 24px 0 32px;
+}
+
+.progress-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+}
+
+.progress-step {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+}
+
+.progress-step.active {
+    background: linear-gradient(135deg, var(--primary-gold) 0%, var(--primary-gold-dark) 100%);
+    border-color: var(--primary-gold);
+    color: var(--bg-dark);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.progress-step.completed {
+    background: var(--success);
+    border-color: var(--success);
+    color: var(--bg-dark);
+}
+
+.step-icon {
+    font-size: 0.8rem;
+}
+
+.progress-line {
+    width: 24px;
+    height: 3px;
+    background: var(--border-color);
+    transition: background 0.3s ease;
+}
+
+.progress-line.completed {
+    background: var(--success);
+}
+
+.progress-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding: 0 20px;
+}
+
+.progress-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.wizard-form {
+    margin: 24px 0;
+}
+
+.wizard-step {
+    background: var(--bg-card);
+    padding: 28px 24px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    margin-bottom: 24px;
+}
+
+.wizard-step h2 {
+    text-align: left;
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    margin-bottom: 8px;
+}
+
+.step-hint {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+}
+
+.step-category {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+
+.step-category strong {
+    color: var(--primary-gold);
+}
+
+.points-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--primary-gold) 0%, var(--primary-gold-dark) 100%);
+    color: var(--bg-dark);
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+}
+
+.wizard-input {
+    font-size: 1.1rem;
+    padding: 16px 18px;
+}
+
+.wizard-textarea {
+    font-size: 1.05rem;
+    padding: 16px 18px;
+    min-height: 120px;
+}
+
+.wizard-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.wizard-right-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.wizard-finish {
+    text-align: center;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-small {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+}
+
+.questions-summary {
+    background: var(--bg-card);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    margin-top: 24px;
+}
+
+.questions-summary h3 {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+.summary-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.summary-item.filled {
+    background: rgba(74, 222, 128, 0.1);
+}
+
+.summary-points {
+    background: var(--bg-dark);
+    color: var(--primary-gold);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    min-width: 50px;
+    text-align: center;
+}
+
+.summary-text {
+    flex: 1;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.summary-text.empty {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.summary-check {
+    color: var(--success);
+    font-weight: 700;
+}
+
 /* Better spacing for mobile */
 @media (max-width: 400px) {
     body {
@@ -1177,5 +1388,30 @@ hr {
     .btn {
         padding: 12px 20px;
         font-size: 0.95rem;
+    }
+    
+    /* Wizard mobile adjustments */
+    .progress-step {
+        width: 36px;
+        height: 36px;
+        font-size: 0.75rem;
+    }
+    
+    .progress-line {
+        width: 16px;
+    }
+    
+    .wizard-actions {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .wizard-right-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+    
+    .wizard-right-actions .btn {
+        width: 100%;
     }
 }
