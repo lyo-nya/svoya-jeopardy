@@ -376,3 +376,43 @@ hr {
     background: #ffd700;
     color: #1a1a2e;
 }
+
+/* Round selection */
+.round-selection {
+    margin: 24px 0;
+}
+
+.round-option {
+    background: #2a2a4e;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+}
+
+.player-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.category-count {
+    color: #888;
+    font-size: 14px;
+}
+
+.completed-rounds {
+    margin: 24px 0;
+    padding: 16px;
+    background: #232342;
+    border-radius: 12px;
+}
+
+.completed-round-item {
+    padding: 8px 0;
+    color: #4ade80;
+}
+
+.current-standings {
+    margin: 24px 0;
+}

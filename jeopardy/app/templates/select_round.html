@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Select Round - New Year Jeopardy{% endblock %}
+
+{% block content %}
+<h1>🎄 New Year Jeopardy 🎄</h1>
+<h2>Select Whose Questions to Play</h2>
+
+<p>Choose a player's question set to play next. That player will sit out this round.</p>
+
+<div class="round-selection">
+    {% for p in available_players %}
+        <form method="POST" action="{{ url_for('game.set_round', player_id=p.id) }}" class="round-option">
+            <div class="player-card">
+                <span class="player-name">👤 {{ p.name }}</span>
+                <span class="category-count">4 categories, 20 questions</span>
+            </div>
+            <button type="submit" class="btn btn-primary">Play {{ p.name }}'s Questions</button>
+        </form>
+    {% else %}
+        <p>All rounds have been played!</p>
+        <a href="{{ url_for('main.results') }}" class="btn btn-primary">View Final Results</a>
+    {% endfor %}
+</div>
+
+{% if completed_rounds %}
+    <div class="completed-rounds">
+        <h3>Completed Rounds:</h3>
+        {% for round in completed_rounds %}
+            <div class="completed-round-item">
+                ✓ Round {{ round.round_number }}: {{ round.player.name }}'s questions
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="current-standings">
+    <h3>Current Standings:</h3>
+    {% for p in players_by_score %}
+        <div class="score-row">
+            <span>{{ p.name }}</span>
+            <span>{{ p.total_score }} pts</span>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
