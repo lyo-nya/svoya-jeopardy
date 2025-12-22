@@ -1,18 +1,20 @@
 {% extends "base.html" %}
 
-{% block title %}Edit Category {{ pos + 1 }} - New Year Jeopardy{% endblock %}
+{% block title %}Категория {{ pos + 1 }} - Своя Jeopardy!{% endblock %}
 
 {% block content %}
-<a href="{{ url_for('setup.setup_overview') }}" class="back-link">← Back</a>
+<a href="{{ url_for('setup.setup_overview') }}" class="back-link">← Назад</a>
 
-<h1>Category {{ pos + 1 }}</h1>
+<h1>Категория {{ pos + 1 }}</h1>
+
+<p class="form-hint">💡 Можно сохранять по одному вопросу. Заполни хотя бы один вопрос и нажми «Сохранить».</p>
 
 <form method="POST" enctype="multipart/form-data">
     <div class="form-group">
-        <label for="category_name">Category Name</label>
+        <label for="category_name">Название категории</label>
         <input type="text" id="category_name" name="category_name" 
                value="{{ category.name if category else '' }}" 
-               placeholder="e.g., 90s Movies" required>
+               placeholder="например: Фильмы 90-х">
     </div>
     
     <hr>
@@ -20,28 +22,33 @@
     {% set point_values = [100, 200, 300, 400, 500] %}
     {% for i in range(5) %}
         {% set question = questions[i] if questions and i < questions|length else none %}
-        <div class="question-form">
-            <h3>Question {{ i + 1 }} ({{ point_values[i] }} points)</h3>
-            
-            <div class="form-group">
-                <label for="question_{{ i }}">Question</label>
-                <textarea id="question_{{ i }}" name="question_{{ i }}" 
-                          placeholder="Enter your question..." required>{{ question.text if question else '' }}</textarea>
+        <div class="question-form {% if question and question.text %}filled{% endif %}">
+            <div class="question-form-header">
+                <h3>Вопрос {{ i + 1 }} ({{ point_values[i] }} очков)</h3>
+                {% if question and question.text %}
+                    <span class="question-saved-badge">✓ Сохранён</span>
+                {% endif %}
             </div>
             
             <div class="form-group">
-                <label for="answer_{{ i }}">Answer</label>
+                <label for="question_{{ i }}">Вопрос</label>
+                <textarea id="question_{{ i }}" name="question_{{ i }}" 
+                          placeholder="Введите вопрос...">{{ question.text if question else '' }}</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="answer_{{ i }}">Ответ</label>
                 <input type="text" id="answer_{{ i }}" name="answer_{{ i }}" 
                        value="{{ question.answer if question else '' }}"
-                       placeholder="Enter the correct answer..." required>
+                       placeholder="Введите правильный ответ...">
             </div>
             
             <div class="form-group">
-                <label for="image_{{ i }}">Image (optional)</label>
+                <label for="image_{{ i }}">Картинка (необязательно)</label>
                 {% if question and question.image_path %}
                     <div class="current-image">
-                        <img src="{{ url_for('setup.uploaded_file', filename=question.image_path) }}" alt="Current image">
-                        <p>Current image attached</p>
+                        <img src="{{ url_for('setup.uploaded_file', filename=question.image_path) }}" alt="Текущая картинка">
+                        <p>📎 Картинка прикреплена</p>
                     </div>
                 {% endif %}
                 <input type="file" id="image_{{ i }}" name="image_{{ i }}" accept="image/*">
@@ -51,6 +58,6 @@
         {% if not loop.last %}<hr>{% endif %}
     {% endfor %}
     
-    <button type="submit" class="btn btn-primary">Save Category</button>
+    <button type="submit" class="btn btn-primary btn-save">💾 Сохранить категорию</button>
 </form>
 {% endblock %}

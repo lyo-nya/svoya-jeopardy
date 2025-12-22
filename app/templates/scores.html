@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}Scores - New Year Jeopardy{% endblock %}
+{% block title %}Счёт - Своя Jeopardy!{% endblock %}
 
 {% block content %}
-<h1>🎆 Scores 🎆</h1>
+<h1>🎆 Счёт 🎆</h1>
 
 {% if current_round %}
     <div class="current-round-info">
-        <h3>📍 Current Round: {{ current_round.round_number }}</h3>
-        <p>Playing {{ sitting_out_player.name }}'s questions</p>
+        <h3>📍 Текущий раунд: {{ current_round.round_number }}</h3>
+        <p>Играем вопросы {{ sitting_out_player.name }}</p>
         
         <div class="round-scoreboard">
-            <h4>Round Scores:</h4>
+            <h4>Очки за раунд:</h4>
             {% for p in players %}
                 {% if p.id != sitting_out_player.id %}
                     <div class="score-row">
@@ -22,41 +22,41 @@
             {% endfor %}
             <div class="score-row sitting-out">
                 <span class="name">{{ sitting_out_player.name }}</span>
-                <span class="sitting-label">(sitting out)</span>
+                <span class="sitting-label">(пропускает)</span>
             </div>
         </div>
     </div>
 {% endif %}
 
 <div class="standings">
-    <h3>🏆 Overall Standings</h3>
+    <h3>🏆 Общий счёт</h3>
     {% for p in players %}
         <div class="standing-row {% if loop.index == 1 %}first{% elif loop.index == 2 %}second{% elif loop.index == 3 %}third{% endif %}">
             <span class="rank">
                 {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}.{% endif %}
             </span>
             <span class="name">{{ p.name }}</span>
-            <span class="score">{{ p.total_score }} pts</span>
+            <span class="score">{{ p.total_score }} очк.</span>
         </div>
     {% endfor %}
 </div>
 
 {% if completed_rounds %}
     <div class="completed-rounds-section">
-        <h3>✅ Completed Rounds</h3>
+        <h3>✅ Сыгранные раунды</h3>
         {% for round in completed_rounds %}
             <div class="completed-round-item">
-                Round {{ round.round_number }}: {{ round.player.name }}'s questions
+                Раунд {{ round.round_number }}: вопросы {{ round.player.name }}
             </div>
         {% endfor %}
     </div>
 {% endif %}
 
 {% if game.status == "in_progress" %}
-    <a href="{{ url_for('game.game_board') }}" class="btn btn-primary">Back to Game</a>
+    <a href="{{ url_for('game.game_board') }}" class="btn btn-primary">← К игре</a>
 {% elif game.status == "completed" %}
-    <a href="{{ url_for('main.results') }}" class="btn btn-primary">View Final Results</a>
+    <a href="{{ url_for('main.results') }}" class="btn btn-primary">🏆 Итоги игры</a>
 {% else %}
-    <a href="{{ url_for('main.lobby') }}" class="btn">Back to Lobby</a>
+    <a href="{{ url_for('main.lobby') }}" class="btn">← В лобби</a>
 {% endif %}
 {% endblock %}

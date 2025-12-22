@@ -1,58 +1,58 @@
 {% extends "base.html" %}
 
-{% block title %}Lobby - New Year Jeopardy{% endblock %}
+{% block title %}Лобби - Своя Jeopardy!{% endblock %}
 
 {% block content %}
-<h1>🎆 New Year Jeopardy 🎆</h1>
-<h2>Waiting for players...</h2>
+<h1>🎆 Своя Jeopardy! 🎆</h1>
+<h2>Ожидаем игроков...</h2>
 
 <div class="players-list">
-    <h3>Players Ready:</h3>
+    <h3>Игроки:</h3>
     
     {% for p in players %}
         <div class="player-item">
             <span class="player-name">
                 👤 {{ p.name }}
-                {% if p.is_host %}<span class="host-badge">(Host)</span>{% endif %}
+                {% if p.is_host %}<span class="host-badge">(Хост)</span>{% endif %}
             </span>
             <span class="status {% if p.questions_submitted %}status-ready{% else %}status-empty{% endif %}">
                 {% if p.questions_submitted %}
-                    ✓ Questions Ready
+                    ✓ Вопросы готовы
                 {% else %}
-                    ○ Still working...
+                    ○ Готовит вопросы...
                 {% endif %}
             </span>
         </div>
     {% else %}
-        <p>No players have joined yet.</p>
+        <p>Пока никто не присоединился.</p>
     {% endfor %}
 </div>
 
 <div class="lobby-status">
-    <p>{{ ready_count }}/{{ total_count }} players ready</p>
-    {% if total_count < 5 %}
-        <p class="warning">Need {{ 5 - total_count }} more player(s) to join</p>
+    <p>{{ ready_count }}/{{ total_count }} игроков готовы</p>
+    {% if ready_count == 0 %}
+        <p class="warning">Нужен хотя бы 1 игрок с вопросами для старта</p>
     {% endif %}
 </div>
 
 <div class="lobby-actions">
-    <a href="{{ url_for('setup.setup_overview') }}" class="btn">Edit My Questions</a>
+    <a href="{{ url_for('setup.setup_overview') }}" class="btn">✏️ Мои вопросы</a>
     
     {% if is_host %}
-        {% if can_start %}
+        {% if ready_count > 0 %}
             <form method="POST" action="{{ url_for('game.start_game') }}" style="display: inline;">
-                <button type="submit" class="btn btn-primary">Start Game</button>
+                <button type="submit" class="btn btn-primary">🚀 Начать игру</button>
             </form>
         {% else %}
-            <button class="btn" disabled>Start Game (waiting for players)</button>
+            <button class="btn" disabled>🚀 Начать игру</button>
         {% endif %}
     {% endif %}
 </div>
 
 {% if game.status == "in_progress" %}
     <div class="game-started">
-        <p>🎮 Game is in progress!</p>
-        <a href="{{ url_for('game.game_board') }}" class="btn btn-primary">Go to Game</a>
+        <p>🎮 Игра уже идёт!</p>
+        <a href="{{ url_for('game.game_board') }}" class="btn btn-primary">Перейти к игре</a>
     </div>
 {% endif %}
 {% endblock %}

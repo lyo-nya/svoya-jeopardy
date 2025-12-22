@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Game Board - New Year Jeopardy{% endblock %}
+{% block title %}Игровое поле - Своя Jeopardy!{% endblock %}
 
 {% block content %}
-<h1>🎄 Round {{ current_round.round_number }}: {{ sitting_out_player.name }}'s Questions 🎄</h1>
+<h1>🎄 Раунд {{ current_round.round_number }}: Вопросы {{ sitting_out_player.name }} 🎄</h1>
 
 <div class="game-board">
     <!-- Category headers -->
@@ -33,8 +33,8 @@
 
 <div class="scoreboard">
     <div class="scoreboard-header">
-        <div class="round-scores-title">Round Scores</div>
-        <div class="total-scores-title">Total</div>
+        <div class="round-scores-title">За раунд</div>
+        <div class="total-scores-title">Всего</div>
     </div>
     
     {% for p in playing_players %}
@@ -49,20 +49,20 @@
         <span class="player-name">{{ sitting_out_player.name }}</span>
         <span class="round-score">—</span>
         <span class="total-score">{{ sitting_out_player.total_score }}</span>
-        <span class="sitting-label">(sitting out)</span>
+        <span class="sitting-label">(пропускает)</span>
     </div>
 </div>
 
 {% if all_answered and is_host %}
     <div class="round-complete">
-        <p>🎉 All questions answered!</p>
+        <p>🎉 Все вопросы отвечены!</p>
         <form method="POST" action="{{ url_for('game.next_round') }}">
-            <button type="submit" class="btn btn-primary">Complete Round & Continue</button>
+            <button type="submit" class="btn btn-primary">Завершить раунд →</button>
         </form>
     </div>
 {% endif %}
 
 <div class="game-actions">
-    <a href="{{ url_for('main.scores') }}" class="btn">View Full Scores</a>
+    <a href="{{ url_for('main.scores') }}" class="btn">📊 Таблица счёта</a>
 </div>
 {% endblock %}

@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}Results - New Year Jeopardy{% endblock %}
+{% block title %}Результаты - Своя Jeopardy!{% endblock %}
 
 {% block content %}
 <div class="results-page">
-    <h1>🎆🎉 Game Over! 🎉🎆</h1>
-    <p class="happy-new-year">Happy New Year!</p>
+    <h1>🎆🎉 Игра окончена! 🎉🎆</h1>
+    <p class="happy-new-year">С Новым Годом!</p>
 
     {% if players %}
         <div class="winner-section">
             <div class="trophy-icon">🏆</div>
-            <div class="winner-label">WINNER</div>
+            <div class="winner-label">ПОБЕДИТЕЛЬ</div>
             <div class="winner-name">✨ {{ players[0].name }} ✨</div>
-            <div class="winner-score">{{ players[0].total_score }} points</div>
+            <div class="winner-score">{{ players[0].total_score }} очков</div>
         </div>
         
         <div class="confetti">
@@ -30,26 +30,26 @@
     {% endif %}
 
     <div class="standings">
-        <h3>🏅 Final Standings</h3>
+        <h3>🏅 Итоговая таблица</h3>
         {% for p in players %}
             <div class="standing-row {% if loop.index == 1 %}first{% elif loop.index == 2 %}second{% elif loop.index == 3 %}third{% endif %}">
                 <span class="rank">
                     {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}.{% endif %}
                 </span>
                 <span class="name">{{ p.name }}</span>
-                <span class="score">{{ p.total_score }} pts</span>
+                <span class="score">{{ p.total_score }} очк.</span>
             </div>
         {% endfor %}
     </div>
 
     {% if rounds and players %}
         <div class="round-breakdown">
-            <h3>📊 Per-Round Breakdown</h3>
+            <h3>📊 Счёт по раундам</h3>
             <div class="breakdown-table-wrapper">
                 <table class="breakdown-table">
                     <thead>
                         <tr>
-                            <th>Round</th>
+                            <th>Раунд</th>
                             {% for p in players %}
                                 <th>{{ p.name[:8] }}{% if p.name|length > 8 %}…{% endif %}</th>
                             {% endfor %}
@@ -59,7 +59,7 @@
                         {% for round in rounds %}
                             <tr>
                                 <td class="round-cell">
-                                    R{{ round.round_number }}
+                                    Р{{ round.round_number }}
                                     <span class="round-author">({{ round.player.name[:5] }}{% if round.player.name|length > 5 %}…{% endif %})</span>
                                 </td>
                                 {% for p in players %}
@@ -73,7 +73,7 @@
                             </tr>
                         {% endfor %}
                         <tr class="total-row">
-                            <td><strong>Total</strong></td>
+                            <td><strong>Итого</strong></td>
                             {% for p in players %}
                                 <td><strong>{{ p.total_score }}</strong></td>
                             {% endfor %}
@@ -85,7 +85,7 @@
     {% endif %}
 
     <div class="celebration-footer">
-        <p>🎆 Thank you for playing! 🎆</p>
+        <p>🎆 Спасибо за игру! 🎆</p>
     </div>
 </div>
 {% endblock %}
