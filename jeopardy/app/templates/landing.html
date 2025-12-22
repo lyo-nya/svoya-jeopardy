@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>New Year Jeopardy</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+        }
+        .loading h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .loading p {
+            color: #aaa;
+            font-size: 1.2rem;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 215, 0, 0.3);
+            border-top-color: #ffd700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 2rem 0;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .error {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="loading">
+            <h1>🎆</h1>
+            <h2>New Year Jeopardy</h2>
+            <div class="spinner"></div>
+            <p>Loading game...</p>
+            <div class="error" id="error">
+                <p><strong>Unable to authenticate with Telegram</strong></p>
+                <p>Please open this app from Telegram.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Initialize Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        
+        // Get init data
+        const initData = tg.initData;
+        
+        if (initData) {
+            // Redirect to main app with init_data
+            window.location.href = '/app?init_data=' + encodeURIComponent(initData);
+        } else {
+            // Show error after a short delay
+            setTimeout(function() {
+                document.querySelector('.spinner').style.display = 'none';
+                document.querySelector('.loading p').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

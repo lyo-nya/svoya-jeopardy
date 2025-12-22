@@ -12,6 +12,12 @@ from app.services import (
 
 
 @main_bp.route("/")
+def landing():
+    """Landing page - loads Telegram SDK and redirects with init_data."""
+    return render_template("landing.html")
+
+
+@main_bp.route("/app")
 @telegram_required
 def index():
     """Entry point - redirect based on game state."""
