@@ -143,9 +143,9 @@
     // Add click handlers to points navigation items
     document.querySelectorAll('.points-nav-item').forEach(function(navItem) {
         navItem.addEventListener('click', function(e) {
-            // Only save data when clicking on an unoccupied cell (not .filled)
-            // and only if we're on a question step with form fields
-            if (!navItem.classList.contains('filled') && isQuestionStep && questionTextarea && answerInput) {
+            // Save draft when navigating away from an unoccupied question step
+            // This preserves the draft even if user clicks an occupied cell to peek at it
+            if (!hasExistingQuestion && isQuestionStep && questionTextarea && answerInput) {
                 const question = questionTextarea.value.trim();
                 const answer = answerInput.value.trim();
                 
