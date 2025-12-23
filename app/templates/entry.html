@@ -93,20 +93,50 @@
 
     <script>
         (function() {
+            // Redirect loop protection
+            var redirectKey = "jeopardy_redirect_count";
+            var redirectCount = parseInt(sessionStorage.getItem(redirectKey) || "0", 10);
+            var lastRedirectTime = parseInt(sessionStorage.getItem(redirectKey + "_time") || "0", 10);
+            var now = Date.now();
+            
+            // Reset counter if more than 5 seconds have passed
+            if (now - lastRedirectTime > 5000) {
+                redirectCount = 0;
+            }
+            
+            // Detect redirect loop (more than 3 redirects in 5 seconds)
+            if (redirectCount >= 3) {
+                sessionStorage.removeItem(redirectKey);
+                sessionStorage.removeItem(redirectKey + "_time");
+                showError(
+                    "Обнаружена ошибка перенаправления. Возможные причины:\n\n" +
+                    "1. Проблема с конфигурацией бота\n" +
+                    "2. Ошибка авторизации Telegram\n\n" +
+                    "Попробуйте закрыть и открыть приложение заново."
+                );
+                return;
+            }
+            
             // Initialize Telegram WebApp
-            const tg = window.Telegram && window.Telegram.WebApp;
+            var tg = window.Telegram && window.Telegram.WebApp;
             
             if (!tg) {
                 showError("Telegram WebApp SDK недоступен. Пожалуйста, откройте приложение из Telegram.");
                 return;
             }
             
-            // Signal to Telegram that we're ready
-            tg.ready();
-            tg.expand();
+            // Signal to Telegram that we're ready (with error handling)
+            try {
+                tg.ready();
+                tg.expand();
+            } catch (e) {
+                console.error("Error initializing Telegram WebApp:", e);
+                showError("Ошибка инициализации Telegram WebApp: " + e.message);
+                return;
+            }
             
             // Get init data from the SDK
-            const initData = tg.initData;
+            var initData = tg.initData;
             
             console.log("Telegram WebApp initialized");
             console.log("initData present:", !!initData);
@@ -123,10 +153,14 @@
                 return;
             }
             
+            // Update redirect counter before redirecting
+            sessionStorage.setItem(redirectKey, String(redirectCount + 1));
+            sessionStorage.setItem(redirectKey + "_time", String(now));
+            
             // Redirect to the authenticated app route with init_data
-            const appUrl = "{{ url_for('main.index') }}";
-            const separator = appUrl.includes("?") ? "&" : "?";
-            const redirectUrl = appUrl + separator + "init_data=" + encodeURIComponent(initData);
+            var appUrl = "{{ url_for('main.index') }}";
+            var separator = appUrl.includes("?") ? "&" : "?";
+            var redirectUrl = appUrl + separator + "init_data=" + encodeURIComponent(initData);
             
             console.log("Redirecting to:", redirectUrl.substring(0, 100) + "...");
             
