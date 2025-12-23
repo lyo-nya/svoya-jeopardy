@@ -109,4 +109,72 @@
         {% endif %}
     {% endif %}
 </form>
+
+<script>
+(function() {
+    const STORAGE_KEY = 'jeopardy_question_draft_{{ pos }}';
+    const currentStep = {{ step }};
+    const isQuestionStep = currentStep > 0;
+    const hasExistingQuestion = {{ 'true' if current_question and current_question.text else 'false' }};
+    
+    // Get form elements
+    const questionTextarea = document.getElementById('question_text');
+    const answerInput = document.getElementById('answer_text');
+    
+    // Restore saved form data if we're on an unoccupied question step
+    if (isQuestionStep && !hasExistingQuestion && questionTextarea && answerInput) {
+        try {
+            const saved = sessionStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const data = JSON.parse(saved);
+                // Only restore if there's actual data and form is empty
+                if ((data.question || data.answer) && !questionTextarea.value && !answerInput.value) {
+                    questionTextarea.value = data.question || '';
+                    answerInput.value = data.answer || '';
+                    // Clear storage after restoring
+                    sessionStorage.removeItem(STORAGE_KEY);
+                }
+            }
+        } catch (e) {
+            console.error('Error restoring form data:', e);
+        }
+    }
+    
+    // Add click handlers to points navigation items
+    document.querySelectorAll('.points-nav-item').forEach(function(navItem) {
+        navItem.addEventListener('click', function(e) {
+            // Save draft when navigating away from an unoccupied question step
+            // This preserves the draft even if user clicks an occupied cell to peek at it
+            if (!hasExistingQuestion && isQuestionStep && questionTextarea && answerInput) {
+                const question = questionTextarea.value.trim();
+                const answer = answerInput.value.trim();
+                
+                // Only save if there's something to save
+                if (question || answer) {
+                    try {
+                        sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+                            question: question,
+                            answer: answer
+                        }));
+                    } catch (e) {
+                        console.error('Error saving form data:', e);
+                    }
+                }
+            }
+        });
+    });
+    
+    // Clear saved data when form is submitted (successful save)
+    const form = document.querySelector('.wizard-form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            try {
+                sessionStorage.removeItem(STORAGE_KEY);
+            } catch (e) {
+                // Ignore errors on cleanup
+            }
+        });
+    }
+})();
+</script>
 {% endblock %}
