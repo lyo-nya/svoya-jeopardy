@@ -202,6 +202,23 @@ def telegram_required(f: F) -> F:
     def decorated(*args: Any, **kwargs: Any) -> Response | Any:
         telegram_data = get_telegram_data()
         if not telegram_data:
+            # Check if init_data was provided but validation failed
+            init_data = request.form.get("init_data") or request.args.get("init_data")
+            if init_data:
+                # init_data was provided but validation failed - show error
+                bot_token = current_app.config.get("TELEGRAM_BOT_TOKEN", "")
+                if not bot_token:
+                    current_app.logger.error("TELEGRAM_BOT_TOKEN not configured - cannot validate init_data")
+                    return (
+                        "Ошибка конфигурации: TELEGRAM_BOT_TOKEN не настроен. "
+                        "Обратитесь к администратору.",
+                        500,
+                    )
+                current_app.logger.warning("init_data validation failed")
+                return (
+                    "Ошибка авторизации Telegram. Попробуйте закрыть и открыть приложение заново.",
+                    401,
+                )
             return redirect(url_for("main.entry"))
         g.telegram_data = telegram_data
         return f(*args, **kwargs)

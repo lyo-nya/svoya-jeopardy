@@ -2,7 +2,15 @@
 (function() {
     "use strict";
     
-    const tg = window.Telegram && window.Telegram.WebApp;
+    // Clear redirect loop counter on successful page load
+    try {
+        sessionStorage.removeItem("jeopardy_redirect_count");
+        sessionStorage.removeItem("jeopardy_redirect_count_time");
+    } catch (e) {
+        // Ignore sessionStorage errors
+    }
+    
+    var tg = window.Telegram && window.Telegram.WebApp;
     
     if (!tg) {
         console.error("Telegram WebApp SDK not available");
@@ -10,12 +18,22 @@
     }
     
     // Initialize and expand
-    tg.ready();
-    tg.expand();
+    try {
+        tg.ready();
+        tg.expand();
+    } catch (e) {
+        console.error("Error initializing Telegram WebApp:", e);
+    }
     
     // Get init data for backend validation
     // Try from SDK first, fall back to sessionStorage
-    let initData = tg.initData;
+    var initData = "";
+    
+    try {
+        initData = tg.initData || "";
+    } catch (e) {
+        console.warn("Could not get initData from Telegram SDK:", e);
+    }
     
     if (initData) {
         // Store in sessionStorage for backup

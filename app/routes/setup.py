@@ -303,7 +303,7 @@ def save_category(pos: int):
         if category_name:
             if len(category_name) > MAX_CATEGORY_NAME_LENGTH:
                 flash(f"Название категории должно быть не более {MAX_CATEGORY_NAME_LENGTH} символов", "error")
-                return redirect(url_for("setup.edit_category", pos=pos))
+                return redirect(url_for("setup.edit_category", position=pos))
             category.name = category_name
         elif not category.name:
             category.name = f"Категория {pos + 1}"
@@ -324,7 +324,7 @@ def save_category(pos: int):
             )
             if error:
                 flash(f"Вопрос {i + 1}: {error}", "error")
-                return redirect(url_for("setup.edit_category", pos=pos))
+                return redirect(url_for("setup.edit_category", position=pos))
 
             if request.form.get(f"question_{i}", "").strip() or request.form.get(f"answer_{i}", "").strip():
                 saved_count += 1
@@ -338,7 +338,7 @@ def save_category(pos: int):
             flash(f"Категория «{category.name}» сохранена! ({saved_count} вопр.)", "success")
         else:
             flash("Заполните хотя бы один вопрос для сохранения", "error")
-            return redirect(url_for("setup.edit_category", pos=pos))
+            return redirect(url_for("setup.edit_category", position=pos))
 
     except SQLAlchemyError as e:
         db.session.rollback()

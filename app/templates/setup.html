@@ -49,7 +49,7 @@
 {% endfor %}
 
 {% if next_pos.value is not none %}
-<a href="{{ url_for('setup.edit_category', pos=next_pos.value) }}" class="btn btn-secondary add-category-btn">+ Добавить категорию</a>
+<a href="{{ url_for('setup.edit_category', position=next_pos.value) }}" class="btn btn-secondary add-category-btn">+ Добавить категорию</a>
 {% endif %}
 
 <a href="{{ url_for('main.lobby') }}" class="btn btn-primary">В лобби</a>
