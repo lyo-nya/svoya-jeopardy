@@ -1427,6 +1427,26 @@ hr {
     font-weight: 700;
 }
 
+/* Current round banner for round selection page */
+.current-round-banner {
+    background: linear-gradient(180deg, #1a3d2e 0%, #0d261c 100%);
+    padding: 16px 20px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    border: 2px solid var(--accent-green);
+    text-align: center;
+}
+
+.current-round-banner p {
+    margin: 0 0 12px 0;
+    color: #7dcea0;
+    font-size: 1rem;
+}
+
+.current-round-banner strong {
+    color: var(--gold);
+}
+
 .current-standings {
     margin: 24px 0;
 }

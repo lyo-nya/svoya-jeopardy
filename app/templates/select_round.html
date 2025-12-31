@@ -6,6 +6,13 @@
 <h1>Своя Jeopardy!</h1>
 <h2>Выберите чьи вопросы играть</h2>
 
+{% if current_round and current_round.status == 'in_progress' %}
+<div class="current-round-banner">
+    <p>Сейчас играем: <strong>вопросы {{ current_round.player.name }}</strong></p>
+    <a href="{{ url_for('game.game_board') }}" class="btn btn-primary">← Вернуться к игре</a>
+</div>
+{% endif %}
+
 <p>Выберите игрока, чьи вопросы сыграть следующими. Этот игрок будет пропускать раунд.</p>
 
 <div class="round-selection">
