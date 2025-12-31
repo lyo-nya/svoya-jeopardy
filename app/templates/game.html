@@ -53,12 +53,18 @@
     </div>
 </div>
 
-{% if all_answered and is_host %}
-    <div class="round-complete">
-        <p>Все вопросы отвечены!</p>
-        <form method="POST" action="{{ url_for('game.next_round') }}">
-            <button type="submit" class="btn btn-primary">Завершить раунд</button>
-        </form>
+{% if is_host %}
+    <div class="round-actions">
+        {% if all_answered %}
+            <p>✅ Все вопросы отвечены!</p>
+            <form method="POST" action="{{ url_for('game.next_round') }}">
+                <button type="submit" class="btn btn-primary">Завершить раунд</button>
+            </form>
+        {% else %}
+            <form method="POST" action="{{ url_for('game.next_round') }}" onsubmit="return confirm('Не все вопросы отвечены. Завершить раунд досрочно?');">
+                <button type="submit" class="btn btn-secondary">Следующий раунд →</button>
+            </form>
+        {% endif %}
     </div>
 {% endif %}
 
