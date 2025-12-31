@@ -7,7 +7,12 @@
 
 {% set total_questions = namespace(count=0) %}
 {% for cat in categories.values() %}
-    {% set total_questions.count = total_questions.count + (cat.questions | list | length) %}
+    {# Only count questions with valid point values (100-500) #}
+    {% for q in cat.questions %}
+        {% if q.points in [100, 200, 300, 400, 500] %}
+            {% set total_questions.count = total_questions.count + 1 %}
+        {% endif %}
+    {% endfor %}
 {% endfor %}
 <h2>{{ total_questions.count }}/20 вопросов</h2>
 
@@ -16,12 +21,14 @@
         {% set category = categories.get(pos) %}
         {% if category %}
             {% set questions_list = category.questions | list %}
-            {% set question_points = questions_list | map(attribute='points') | list %}
+            {# Only count questions with valid point values (100-500) #}
+            {% set valid_questions = questions_list | selectattr("points", "in", [100, 200, 300, 400, 500]) | list %}
+            {% set question_points = valid_questions | map(attribute='points') | list %}
             <div class="category-card has-content">
                 <div class="category-header">
                     <span class="category-name-inline">{{ category.name }}</span>
                     <div class="category-header-right">
-                        <span class="status status-ready">{{ questions_list | length }}/5</span>
+                        <span class="status status-ready">{{ valid_questions | length }}/5</span>
                         <form method="POST" action="{{ url_for('setup.delete_category', pos=pos) }}" class="delete-form" onsubmit="return confirm('Удалить категорию «{{ category.name }}» и все её вопросы?');">
                             <button type="submit" class="btn btn-delete btn-small" title="Удалить категорию">✕</button>
                         </form>

@@ -12,7 +12,12 @@
     {% for p in players %}
         {% set q_count = namespace(value=0) %}
         {% for cat in p.categories %}
-            {% set q_count.value = q_count.value + (cat.questions | list | length) %}
+            {# Only count questions with valid point values (100-500) #}
+            {% for q in cat.questions %}
+                {% if q.points in [100, 200, 300, 400, 500] %}
+                    {% set q_count.value = q_count.value + 1 %}
+                {% endif %}
+            {% endfor %}
         {% endfor %}
         <div class="player-item">
             <span class="player-name">
