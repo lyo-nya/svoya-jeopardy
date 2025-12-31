@@ -50,12 +50,12 @@ def game_board():
     playing_players = [p for p in game.players if p.id != sitting_out_player.id]
     round_scores = {rs.player_id: rs.score for rs in current_round.round_scores}
 
-    # Only check questions with valid point values (displayed on the board)
+    # Only check questions with valid point values and actual content (displayed on the board)
     all_answered = all(
         q.is_answered
         for cat in categories
         for q in cat.questions
-        if q.points in POINT_VALUES
+        if q.points in POINT_VALUES and q.text and q.text != "???"
     )
 
     return render_template(

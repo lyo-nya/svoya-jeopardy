@@ -7,9 +7,9 @@
 
 {% set total_questions = namespace(count=0) %}
 {% for cat in categories.values() %}
-    {# Only count questions with valid point values (100-500) #}
+    {# Only count questions with valid point values and actual content #}
     {% for q in cat.questions %}
-        {% if q.points in [100, 200, 300, 400, 500] %}
+        {% if q.points in [100, 200, 300, 400, 500] and q.text and q.text != "???" %}
             {% set total_questions.count = total_questions.count + 1 %}
         {% endif %}
     {% endfor %}
@@ -21,8 +21,13 @@
         {% set category = categories.get(pos) %}
         {% if category %}
             {% set questions_list = category.questions | list %}
-            {# Only count questions with valid point values (100-500) #}
-            {% set valid_questions = questions_list | selectattr("points", "in", [100, 200, 300, 400, 500]) | list %}
+            {# Only count questions with valid point values and actual content #}
+            {% set valid_questions = [] %}
+            {% for q in questions_list %}
+                {% if q.points in [100, 200, 300, 400, 500] and q.text and q.text != "???" %}
+                    {% set valid_questions = valid_questions + [q] %}
+                {% endif %}
+            {% endfor %}
             {% set question_points = valid_questions | map(attribute='points') | list %}
             <div class="category-card has-content">
                 <div class="category-header">

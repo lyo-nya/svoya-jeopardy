@@ -12,9 +12,9 @@
     {% for p in players %}
         {% set q_count = namespace(value=0) %}
         {% for cat in p.categories %}
-            {# Only count questions with valid point values (100-500) #}
+            {# Only count questions with valid point values and actual content #}
             {% for q in cat.questions %}
-                {% if q.points in [100, 200, 300, 400, 500] %}
+                {% if q.points in [100, 200, 300, 400, 500] and q.text and q.text != "???" %}
                     {% set q_count.value = q_count.value + 1 %}
                 {% endif %}
             {% endfor %}
