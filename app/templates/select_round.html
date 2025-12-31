@@ -16,7 +16,7 @@
                 {% set cat_count = p.categories | list | length %}
                 {% set q_count = namespace(total=0) %}
                 {% for cat in p.categories %}
-                    {% set q_count.total = q_count.total + (cat.questions | list | length) %}
+                    {% set q_count.total = q_count.total + (cat.questions | list | map(attribute='points') | unique | list | length) %}
                 {% endfor %}
                 <span class="category-count">{{ cat_count }} кат., {{ q_count.total }} вопр.</span>
             </div>

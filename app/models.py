@@ -91,6 +91,8 @@ class Question(db.Model):
     is_answered = db.Column(db.Boolean, default=False)
     answered_by_player_id = db.Column(db.Integer, db.ForeignKey("players.id"), nullable=True)
 
+    __table_args__ = (db.UniqueConstraint("category_id", "points"),)
+
     category = db.relationship("Category", back_populates="questions")
     answered_by = db.relationship("Player", foreign_keys=[answered_by_player_id])
 

@@ -6,6 +6,7 @@ from flask import current_app, flash, g, redirect, render_template, url_for
 from sqlalchemy.exc import SQLAlchemyError
 
 from app import db
+from app.constants import POINT_VALUES
 from app.models import Category, Player, Question, Round, RoundScore
 from app.routes import game_bp
 from app.services import game_context_required, telegram_required
@@ -49,7 +50,17 @@ def game_board():
     playing_players = [p for p in game.players if p.id != sitting_out_player.id]
     round_scores = {rs.player_id: rs.score for rs in current_round.round_scores}
 
-    all_answered = all(q.is_answered for cat in categories for q in cat.questions)
+    # Check if all displayed questions are answered (one per point value per category)
+    # This handles potential duplicate questions in the database
+    all_answered = True
+    for cat in categories:
+        for pts in POINT_VALUES:
+            question = next((q for q in cat.questions if q.points == pts), None)
+            if question and not question.is_answered:
+                all_answered = False
+                break
+        if not all_answered:
+            break
 
     return render_template(
         "game.html",
