@@ -53,6 +53,12 @@
     </div>
 </div>
 
+{% if is_host %}
+    <div class="game-actions">
+        <a href="{{ url_for('game.select_round') }}" class="btn btn-secondary">Выбрать другие вопросы →</a>
+    </div>
+{% endif %}
+
 {% if all_answered and is_host %}
     <div class="round-complete">
         <p>Все вопросы отвечены!</p>

@@ -137,6 +137,9 @@ def select_round():
 
     players_by_score = list(game.players.order_by(Player.total_score.desc()).all())
 
+    # Get current in-progress round if any
+    current_round = Round.query.get(game.current_round_id) if game.current_round_id else None
+
     return render_template(
         "select_round.html",
         game=game,
@@ -145,6 +148,7 @@ def select_round():
         completed_rounds=completed_rounds,
         players_by_score=players_by_score,
         is_host=player.is_host,
+        current_round=current_round,
     )
 
 
