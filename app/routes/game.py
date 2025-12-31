@@ -50,13 +50,18 @@ def game_board():
     playing_players = [p for p in game.players if p.id != sitting_out_player.id]
     round_scores = {rs.player_id: rs.score for rs in current_round.round_scores}
 
-    # Only check questions with valid point values and actual content (displayed on the board)
-    all_answered = all(
-        q.is_answered
-        for cat in categories
-        for q in cat.questions
-        if q.points in POINT_VALUES and q.text and q.text != "???"
-    )
+    # Only check questions that are actually displayed on the board
+    # (first valid question per point value per category)
+    def get_displayed_questions():
+        for cat in categories:
+            questions_by_points = {}
+            for q in cat.questions:
+                if q.points in POINT_VALUES and q.text and q.text != "???":
+                    if q.points not in questions_by_points:
+                        questions_by_points[q.points] = q
+            yield from questions_by_points.values()
+
+    all_answered = all(q.is_answered for q in get_displayed_questions())
 
     return render_template(
         "game.html",
